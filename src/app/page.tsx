@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import type { FoodItem, NutritionalInfo } from '@/lib/types';
@@ -72,6 +73,10 @@ export default function CalorieSnapPage() {
     handleAddFoodToSelection(food, 1); // Add new custom food to selection with quantity 1
   };
   
+  const handleClearAllSelectedFoods = () => {
+    setSelectedFoods([]);
+  };
+
   // Combine predefined and custom foods for the FoodSelection component
   const allAvailableFoods = React.useMemo(() => {
     // Ensure no duplicate IDs if custom foods could somehow match predefined
@@ -104,6 +109,7 @@ export default function CalorieSnapPage() {
               selectedFoods={selectedFoods}
               onRemoveFood={handleRemoveFoodFromSelection}
               onUpdateQuantity={handleUpdateFoodQuantity}
+              onClearAll={handleClearAllSelectedFoods}
             />
           </div>
         </div>
