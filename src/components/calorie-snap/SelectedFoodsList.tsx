@@ -30,7 +30,6 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
   const handleInputChange = (id: string, value: string) => {
     if (value === "") {
       // Let onBlur handle empty input if user leaves it empty
-      // Or, you could temporarily set an 'invalid' visual state on the input
       return;
     }
 
@@ -43,29 +42,23 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
         onUpdateQuantity(id, quantity);
       }
     }
-    // If not a valid number (e.g. "abc"), do nothing for now.
-    // Browser's type="number" might prevent some, onBlur will catch others.
   };
 
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>, itemId: string) => {
     const foodItem = selectedFoods.find(f => f.id === itemId);
-    if (!foodItem) return; // Item might have been removed by handleInputChange
+    if (!foodItem) return;
 
     const currentValue = e.target.value;
     
     if (currentValue === "") {
-      // If blurred while empty, reset quantity to 1
       onUpdateQuantity(itemId, 1);
       return;
     }
     
     const quantity = parseFloat(currentValue);
     if (isNaN(quantity) || quantity <= 0) {
-      // If blurred with invalid text (e.g. "abc") or non-positive number (e.g. "-5")
-      // (and item wasn't already removed if "0" was typed), reset to 1.
       onUpdateQuantity(itemId, 1);
     }
-    // If it was a valid positive number, handleInputChange would have already set it.
   };
 
   return (
@@ -86,7 +79,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
         {selectedFoods.length === 0 ? (
           <p className="text-muted-foreground">No items added to your meal yet. Select items from the list or add custom food.</p>
         ) : (
-          <ScrollArea className="max-h-[400px] pr-3"> {/* Consider max-h-[calc(100vh-X)] if footer is an issue */}
+          <ScrollArea className="max-h-[400px] pr-3">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -107,9 +100,9 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                         </Button>
                         <Input
                           type="number"
-                          step="any" // Allow decimals
-                          min="0" // Allow typing 0, logic will handle removal
-                          value={item.quantity === undefined ? '' : String(item.quantity)} // Display current quantity or empty for editing
+                          step="any"
+                          min="0"
+                          value={item.quantity === undefined ? '' : String(item.quantity)}
                           onChange={(e) => handleInputChange(item.id, e.target.value)}
                           onBlur={(e) => handleInputBlur(e, item.id)}
                           className="h-8 w-12 text-center px-1"
@@ -120,7 +113,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{(item.calories * (item.quantity || 0)).toFixed(0)}</TableCell> {/* Use 0 if quantity is undefined for calculation */}
+                    <TableCell className="text-right">{(item.calories * (item.quantity || 0)).toFixed(0)}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:text-destructive/80 h-8 w-8" aria-label={`Remove ${item.name}`}>
                         <Trash2 className="h-4 w-4" />
