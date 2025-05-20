@@ -48,8 +48,8 @@ export default function CalorieSnapPage() {
   const handleAddFoodToSelection = (food: FoodItem, quantity: number) => {
     let foodToProcess = { ...food };
 
-    if (!foodToProcess.nutritionLabelDetails && 
-        (foodToProcess.calories > 0 || foodToProcess.protein > 0 || foodToProcess.carbs > 0 || foodToProcess.fat > 0)) {
+    // Ensure nutritionLabelDetails is populated for predefined and custom foods if not already present
+    if (!foodToProcess.nutritionLabelDetails && (foodToProcess.calories > 0 || foodToProcess.protein > 0 || foodToProcess.carbs > 0 || foodToProcess.fat > 0)) {
       foodToProcess.nutritionLabelDetails = [
         `Calories: ${foodToProcess.calories.toFixed(0)} kcal`,
         `Protein: ${foodToProcess.protein.toFixed(1)} g`,
@@ -65,7 +65,8 @@ export default function CalorieSnapPage() {
           f.id === foodToProcess.id ? { 
             ...f, 
             quantity: (f.quantity || 0) + quantity,
-            nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails
+            // Preserve existing nutritionLabelDetails, especially if it came from AI
+            nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails 
           } : f
         );
       }
@@ -104,6 +105,10 @@ export default function CalorieSnapPage() {
 
   const handleFoodEstimatedFromImage = (foodItem: FoodItem) => {
     handleAddFoodToSelection(foodItem, 1); 
+    toast({
+      title: "Image Processed!",
+      description: `${foodItem.name} added to your meal. Hover (i) for details.`,
+    });
   };
 
   const allAvailableFoods = React.useMemo(() => {
@@ -117,7 +122,7 @@ export default function CalorieSnapPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex flex-col space-y-8"> {/* Changed from grid to flex-col */}
+        <div className="flex flex-col space-y-8">
           {/* Item Input Section */}
           <div className="w-full">
             <Tabs defaultValue="manual" className="w-full">
@@ -140,7 +145,7 @@ export default function CalorieSnapPage() {
 
           {/* Current Meal Section - Conditional Rendering */}
           {selectedFoods.length > 0 && (
-            <div className="w-full space-y-8">
+            <div className="w-full space-y-8 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
               <NutritionalSummary totals={totalNutrients} />
               <SelectedFoodsList
                 selectedFoods={selectedFoods}
@@ -159,3 +164,4 @@ export default function CalorieSnapPage() {
     </div>
   );
 }
+
