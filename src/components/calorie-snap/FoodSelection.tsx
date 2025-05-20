@@ -5,14 +5,13 @@ import type { FoodItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, PlusSquare } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Label as BasicLabel } from '@/components/ui/label'; // Renamed to avoid conflict
+import { Label as BasicLabel } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ReusableSearchableSelect, type SearchableSelectItem } from './ReusableSearchableSelect';
 
 interface FoodSelectionProps {
   predefinedFoods: FoodItem[];
@@ -27,15 +26,13 @@ type QuantityFormData = z.infer<typeof quantityFormSchema>;
 
 export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodDialog }: FoodSelectionProps) {
   const [selectedFoodId, setSelectedFoodId] = useState<string | undefined>(undefined);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
 
   const quantityForm = useForm<QuantityFormData>({
     resolver: zodResolver(quantityFormSchema),
     defaultValues: {
       quantity: 1,
     },
-    mode: "onChange", 
+    mode: "onChange",
   });
 
   const handleAddFoodSubmit = (data: QuantityFormData) => {
@@ -44,89 +41,45 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       if (foodToAdd) {
         onAddFood(foodToAdd, data.quantity);
         setSelectedFoodId(undefined);
-        setSearchTerm('');
         quantityForm.reset({ quantity: 1 });
-        setIsSelectOpen(false); 
       }
     }
   };
 
-  const filteredFoods = predefinedFoods.filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const searchableFoodItems: SearchableSelectItem[] = predefinedFoods.map(food => ({
+    id: food.id,
+    name: food.name,
+    details: `(${food.calories.toFixed(0)} kcal)`
+  }));
 
-  const handleFoodSelected = (foodId: string) => {
-    setSelectedFoodId(foodId);
-  };
-
-  const handleCustomFoodTrigger = () => {
+  const handleCustomFoodTriggerWithSearchTerm = (searchTerm: string) => {
     onTriggerCustomFoodDialog(searchTerm);
-    setIsSelectOpen(false); 
   };
 
   return (
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl text-primary">Select Food Item</CardTitle>
-        <CardDescription>Choose from a list or type to search. If not found, you can add it as a custom item.</CardDescription>
+        <CardDescription>Choose from the list or type to search. If not found, you can add it as a custom item.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <BasicLabel htmlFor="food-select">Food Item</BasicLabel>
-          <Select
-            id="food-select"
-            open={isSelectOpen}
-            onOpenChange={setIsSelectOpen}
+          <BasicLabel htmlFor="food-item-searchable-select">Food Item</BasicLabel>
+          <ReusableSearchableSelect
+            id="food-item-searchable-select"
+            items={searchableFoodItems}
             value={selectedFoodId}
-            onValueChange={handleFoodSelected}
-          >
-            <SelectTrigger className="w-full bg-card">
-              <SelectValue placeholder="Select or search for a food item" />
-            </SelectTrigger>
-            <SelectContent>
-              <div className="p-2 sticky top-0 bg-popover z-10">
-                <Input
-                  placeholder="Search food..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setSelectedFoodId(undefined); 
-                  }}
-                  className="bg-background border-input mb-2"
-                  aria-label="Search food items"
-                />
-              </div>
-              <ScrollArea className="max-h-[250px]">
-                {filteredFoods.length > 0 ? (
-                  filteredFoods.map((food) => (
-                    <SelectItem key={food.id} value={food.id}>
-                      {food.name} ({food.calories} kcal)
-                    </SelectItem>
-                  ))
-                ) : searchTerm.trim() !== '' ? (
-                  <div
-                    className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={handleCustomFoodTrigger}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleCustomFoodTrigger();
-                      }
-                    }}
-                  >
-                    <PlusSquare className="absolute left-2 h-4 w-4" />
-                    <span>Add "{searchTerm}" as custom food</span>
-                  </div>
-                ) : (
-                  <div className="p-4 text-sm text-muted-foreground text-center">
-                    Type to search for a food item.
-                  </div>
-                )}
-              </ScrollArea>
-            </SelectContent>
-          </Select>
+            onValueChange={(id) => {
+              setSelectedFoodId(id);
+              // Trigger validation for quantity when food item changes to update button state
+              quantityForm.trigger("quantity").catch(() => {});
+            }}
+            placeholder="Select or search for a food item"
+            searchPlaceholder="Search food..."
+            notFoundText={(searchTerm) => `Add "${searchTerm}" as custom food`}
+            onNotFoundClick={handleCustomFoodTriggerWithSearchTerm}
+            notFoundIcon={PlusSquare}
+          />
         </div>
 
         <Form {...quantityForm}>
@@ -141,7 +94,7 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
                     <Input
                       id="quantity-input"
                       type="number"
-                      min="0.1" 
+                      min="0.1"
                       step="0.1"
                       {...field}
                       className="w-full bg-card"
@@ -152,10 +105,10 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
                 </FormItem>
               )}
             />
-            
-            <Button 
+
+            <Button
               type="submit"
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90" 
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
               disabled={!selectedFoodId || !quantityForm.formState.isValid}
             >
               <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
