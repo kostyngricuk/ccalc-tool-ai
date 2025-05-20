@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
@@ -55,11 +56,19 @@ export function ImageUpload() {
       });
     } catch (err) {
       console.error("AI processing error:", err);
-      setError(err instanceof Error ? err.message : "An unknown error occurred during image analysis.");
+      let userErrorMessage = "An unknown error occurred during image analysis.";
+      if (err instanceof Error) {
+        if (err.message.includes("503") || err.message.toLowerCase().includes("service unavailable") || err.message.toLowerCase().includes("model is overloaded")) {
+          userErrorMessage = "The AI service is temporarily overloaded. Please try again in a few moments.";
+        } else {
+          userErrorMessage = err.message; // Use the actual error message if it's not an overload
+        }
+      }
+      setError(userErrorMessage);
        toast({
         variant: "destructive",
         title: "Analysis Failed",
-        description: "Could not estimate calories from the image.",
+        description: userErrorMessage,
       });
     } finally {
       setIsLoading(false);
