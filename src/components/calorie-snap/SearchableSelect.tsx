@@ -101,7 +101,7 @@ export function SearchableSelect({
             variant="outline"
             role="combobox"
             aria-expanded={isOpen}
-            className="w-full justify-between bg-card text-foreground hover:bg-accent/10 focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            className="w-full justify-between bg-card text-foreground hover:bg-primary/10 focus:ring-2 focus:ring-ring focus:ring-offset-2"
           >
             <span className="truncate">
               {selectedItem ? selectedItem.name : placeholder}
@@ -128,8 +128,8 @@ export function SearchableSelect({
                     key={item.id}
                     onClick={() => handleSelect(item.id)}
                     className={cn(
-                      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                      item.id === value && "bg-accent/50 font-medium"
+                      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none hover:bg-primary hover:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                      item.id === value && "bg-primary/50 font-medium"
                     )}
                     role="option"
                     aria-selected={item.id === value}
@@ -154,7 +154,7 @@ export function SearchableSelect({
               ) : searchTerm.trim() !== '' && onNotFoundClick ? (
                 <div
                   onClick={handleNotFoundClick}
-                  className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                  className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 px-3 text-sm outline-none hover:bg-primary hover:text-primary-foreground"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -179,3 +179,4 @@ export function SearchableSelect({
     </div>
   );
 }
+
