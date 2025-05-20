@@ -127,7 +127,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Button 
             onClick={() => fileInputRef.current?.click()} 
             variant="outline" 
-            className="w-full border-dashed border-2 border-input text-muted-foreground hover:border-accent py-8 mt-2" // Removed hover:text-accent to allow variant's hover:text-accent-foreground to apply
+            className="w-full border-dashed border-2 border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:border-accent py-8 mt-2"
             aria-label="Upload food image"
           >
             <div className="flex flex-col items-center space-y-2">
@@ -158,22 +158,24 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           </Alert>
         )}
 
-        <Button
-          onClick={handleSubmitImage}
-          disabled={!selectedFile || isLoading}
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Estimating & Adding...
-            </>
-          ) : (
-            <>
-              Estimate & Add to Meal
-            </>
-          )}
-        </Button>
+        {selectedFile && (
+          <Button
+            onClick={handleSubmitImage}
+            disabled={isLoading}
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Estimating &amp; Adding...
+              </>
+            ) : (
+              <>
+                Estimate &amp; Add to Meal
+              </>
+            )}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
