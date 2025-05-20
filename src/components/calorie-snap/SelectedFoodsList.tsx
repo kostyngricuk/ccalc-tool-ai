@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NutritionLabel } from './NutritionLabel';
-import { Recycle, PlusCircle, MinusCircle, Info, Trash2 } from 'lucide-react';
+import { PlusCircle, MinusCircle, Info, Trash2 } from 'lucide-react'; // Ensured Trash2 is imported, Recycle removed if not used elsewhere
 import React from 'react';
 
 interface SelectedFoodsListProps {
@@ -70,12 +70,12 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
           {selectedFoods.length > 0 && (
             <Button
               variant="ghost"
-              size="icon" // Set size to icon
+              size="icon" 
               onClick={onClearAll}
               className="text-destructive hover:text-destructive/80"
-              aria-label="Clear Meal" // Added aria-label
+              aria-label="Clear Meal" 
             >
-              <Recycle className="h-5 w-5" /> {/* Changed icon to Recycle */}
+              <Trash2 className="h-5 w-5" /> {/* Changed icon to Trash2 */}
             </Button>
           )}
         </div>
@@ -142,7 +142,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                           </div>
 
                           <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:text-destructive/80 h-8 w-8" aria-label={`Remove ${item.name}`}>
-                            <Trash2 className="h-5 w-5" /> {/* Corrected icon for removing individual item */}
+                            <Trash2 className="h-5 w-5" /> 
                           </Button>
                         </div>
                       </div>
