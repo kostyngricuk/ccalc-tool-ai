@@ -35,7 +35,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
       return;
     }
 
-    const quantity = parseFloat(value);
+    const quantity = parseFloat(value.replace(',', '.')); // Allow comma as decimal separator
 
     if (!isNaN(quantity)) {
       if (quantity <= 0) {
@@ -52,7 +52,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
     const foodItem = selectedFoods.find(f => f.id === itemId);
     if (!foodItem) return;
 
-    const currentValue = e.target.value;
+    const currentValue = e.target.value.replace(',', '.');
     
     if (currentValue.trim() === "" || isNaN(parseFloat(currentValue)) || parseFloat(currentValue) <= 0) {
       onUpdateQuantity(itemId, 1); 
@@ -72,7 +72,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
             </Button>
           )}
         </div>
-        <CardDescription>Items you've added. Hover (i) for nutrition details.</CardDescription>
+        {selectedFoods.length > 0 && <CardDescription>Items you've added. Hover (i) for nutrition details.</CardDescription>}
       </CardHeader>
       <CardContent>
         {selectedFoods.length === 0 ? (
@@ -122,10 +122,10 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                                 type="text" 
                                 inputMode="decimal" 
                                 pattern="[0-9]*[.,]?[0-9]*" 
-                                value={item.quantity === undefined ? '' : String(item.quantity)}
+                                value={item.quantity === undefined ? '' : String(item.quantity).replace('.',',')}
                                 onChange={(e) => handleInputChange(item.id, e.target.value)}
                                 onBlur={(e) => handleInputBlur(e, item.id)}
-                                className="h-8 w-14 text-center px-1 bg-background"
+                                className="h-8 w-14 text-center px-1 bg-input"
                                 aria-label={`Quantity for ${item.name}`}
                               />
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => handleQuantityButtonClick(item.id, item.quantity || 1, 1)} aria-label="Increase quantity">
@@ -134,7 +134,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                             </div>
                             {/* Calories Display */}
                             <span className="text-foreground font-medium">
-                              {(item.calories * (item.quantity || 0)).toFixed(0)} kcal
+                              {(item.calories * (Number(item.quantity) || 0)).toFixed(0)} kcal
                             </span>
                           </div>
 

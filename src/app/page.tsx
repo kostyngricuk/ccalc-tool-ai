@@ -29,7 +29,7 @@ export default function CalorieSnapPage() {
   const calculateTotals = useCallback(() => {
     const totals = selectedFoods.reduce(
       (acc, item) => {
-        const quantity = item.quantity || 1;
+        const quantity = Number(item.quantity) || 0; // Treat undefined or NaN quantity as 0 for totals
         acc.calories += item.calories * quantity;
         acc.protein += item.protein * quantity;
         acc.carbs += item.carbs * quantity;
@@ -48,7 +48,6 @@ export default function CalorieSnapPage() {
   const handleAddFoodToSelection = (food: FoodItem, quantity: number) => {
     let foodToProcess = { ...food };
 
-    // Ensure nutritionLabelDetails is populated for predefined and custom foods if not already present
     if (!foodToProcess.nutritionLabelDetails && (foodToProcess.calories > 0 || foodToProcess.protein > 0 || foodToProcess.carbs > 0 || foodToProcess.fat > 0)) {
       foodToProcess.nutritionLabelDetails = [
         `Calories: ${foodToProcess.calories.toFixed(0)} kcal`,
@@ -64,8 +63,7 @@ export default function CalorieSnapPage() {
         return prevFoods.map(f =>
           f.id === foodToProcess.id ? { 
             ...f, 
-            quantity: (f.quantity || 0) + quantity,
-            // Preserve existing nutritionLabelDetails, especially if it came from AI
+            quantity: (Number(f.quantity) || 0) + quantity,
             nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails 
           } : f
         );
@@ -78,7 +76,7 @@ export default function CalorieSnapPage() {
     setSelectedFoods((prevFoods) => prevFoods.filter((food) => food.id !== id));
   };
 
-  const handleUpdateFoodQuantity = (id: string, newQuantity: number) => {
+  const handleUpdateFoodQuantity = (id: string, newQuantity?: number) => { // Allow newQuantity to be undefined
     setSelectedFoods((prevFoods) =>
       prevFoods.map((food) =>
         food.id === id ? { ...food, quantity: newQuantity } : food
@@ -164,4 +162,3 @@ export default function CalorieSnapPage() {
     </div>
   );
 }
-
