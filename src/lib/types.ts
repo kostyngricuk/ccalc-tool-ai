@@ -7,6 +7,7 @@ export interface FoodItem {
   fat: number;
   quantity?: number; // Used for selected items
   custom?: boolean; // To differentiate custom items from predefined ones
+  nutritionLabelDetails?: string | null; // To store detailed nutrition info, e.g., from AI
 }
 
 export interface NutritionalInfo {

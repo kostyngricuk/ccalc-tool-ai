@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Camera, UploadCloud, AlertTriangle, Loader2 } from 'lucide-react';
-import { estimateCaloriesFromImage, EstimateCaloriesFromImageOutput } from '@/ai/flows/estimate-calories-from-image';
-import { NutritionLabel } from './NutritionLabel';
+import { estimateCaloriesFromImage } from '@/ai/flows/estimate-calories-from-image';
 import { useToast } from "@/hooks/use-toast";
 import type { FoodItem } from '@/lib/types';
 
@@ -22,7 +21,6 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [nutritionResult, setNutritionResult] = useState<EstimateCaloriesFromImageOutput | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -36,7 +34,6 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
       };
       reader.readAsDataURL(file);
       setError(null);
-      setNutritionResult(null);
     }
   };
 
@@ -48,13 +45,11 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
 
     setIsLoading(true);
     setError(null);
-    setNutritionResult(null);
 
     try {
       const result = await estimateCaloriesFromImage({ photoDataUri: imagePreview });
-      setNutritionResult(result);
       
-      const { itemName, calories, protein, carbs, fat } = result;
+      const { itemName, calories, protein, carbs, fat, nutritionLabel } = result;
       const newFoodItem: FoodItem = {
         id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: itemName || 'Scanned Meal',
@@ -64,12 +59,13 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
         fat: fat || 0,
         quantity: 1,
         custom: true, 
+        nutritionLabelDetails: nutritionLabel, // Store the detailed label
       };
       onFoodEstimated(newFoodItem);
 
       toast({
         title: "Analysis Complete!",
-        description: "Nutritional information estimated. Item added to your meal.",
+        description: `${newFoodItem.name} added to your meal. Hover over the (i) icon for details.`,
       });
 
     } catch (err) {
@@ -102,7 +98,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Camera className="h-8 w-8 text-accent" />
           <CardTitle className="text-2xl text-accent">Estimate from Image</CardTitle>
         </div>
-        <CardDescription>Upload a photo of your meal to get an AI-powered nutritional estimate. The result will be added to your current meal.</CardDescription>
+        <CardDescription>Upload a photo of your meal. The estimated item will be added to your meal, and you can hover over it for nutritional details.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
@@ -166,9 +162,6 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
             </>
           )}
         </Button>
-        
-        <NutritionLabel nutritionData={nutritionResult?.nutritionLabel ?? null} isLoading={isLoading && !error && !nutritionResult} />
-
       </CardContent>
     </Card>
   );
