@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label'; // Using standard Label
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { UploadCloud, AlertTriangle, Loader2, Sparkles } from 'lucide-react'; // Added Sparkles
+import { UploadCloud, AlertTriangle, Loader2, Sparkles } from 'lucide-react';
 import { estimateCaloriesFromImage } from '@/ai/flows/estimate-calories-from-image';
 import { useToast } from "@/hooks/use-toast";
 import type { FoodItem } from '@/lib/types';
 import { FormItem } from "@/components/ui/form"; // For structural grouping
+import { cn } from '@/lib/utils';
 
 interface ImageUploadProps {
   onFoodEstimated: (foodItem: FoodItem) => void;
@@ -52,6 +53,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
       
       const { itemName, calories, protein, carbs, fat } = result; 
 
+      // Construct the nutritionLabelDetails string for consistency
       const nutritionDetailsString = [
         `Calories: ${(calories || 0).toFixed(0)} kcal`,
         `Protein: ${(protein || 0).toFixed(1)} g`,
@@ -71,11 +73,6 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
         nutritionLabelDetails: nutritionDetailsString, 
       };
       onFoodEstimated(newFoodItem);
-
-      toast({
-        title: "Analysis Complete!",
-        description: `${newFoodItem.name} added to your meal. Hover over the (i) icon for details.`,
-      });
 
       // Clear the form after successful submission
       setImagePreview(null);
@@ -162,7 +159,12 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Button
             onClick={handleSubmitImage}
             disabled={isLoading}
-            className="w-full bg-accent text-accent-foreground hover:bg-accent/90" // Removed text-lg and py-6
+            className={cn(
+              "w-full text-accent-foreground",
+              isLoading
+                ? "bg-gradient-to-r from-[hsl(var(--accent))] via-[hsl(35,100%,70%)] to-[hsl(var(--accent))] [background-position:0%_center] [background-size:200%_auto] animate-animate-bg-shimmer cursor-not-allowed"
+                : "bg-accent hover:bg-accent/90"
+            )}
           >
             {isLoading ? (
               <>
@@ -171,7 +173,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
               </>
             ) : (
               <>
-                <Sparkles className="mr-2 h-4 w-4" /> {/* Added Sparkles icon */}
+                <Sparkles className="mr-2 h-4 w-4" /> 
                 Estimate &amp; Add to Meal
               </>
             )}
