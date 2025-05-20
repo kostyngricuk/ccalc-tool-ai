@@ -49,9 +49,8 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
     try {
       const result = await estimateCaloriesFromImage({ photoDataUri: imagePreview });
       
-      const { itemName, calories, protein, carbs, fat } = result; // We'll use these structured values
+      const { itemName, calories, protein, carbs, fat } = result; 
 
-      // Construct the nutritionLabelDetails string for consistency
       const nutritionDetailsString = [
         `Calories: ${(calories || 0).toFixed(0)} kcal`,
         `Protein: ${(protein || 0).toFixed(1)} g`,
@@ -68,7 +67,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
         fat: fat || 0,
         quantity: 1,
         custom: true, 
-        nutritionLabelDetails: nutritionDetailsString, // Use the consistently formatted string
+        nutritionLabelDetails: nutritionDetailsString, 
       };
       onFoodEstimated(newFoodItem);
 
@@ -76,6 +75,13 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
         title: "Analysis Complete!",
         description: `${newFoodItem.name} added to your meal. Hover over the (i) icon for details.`,
       });
+
+      // Clear the form after successful submission
+      setImagePreview(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset file input
+      }
 
     } catch (err) {
       console.error("AI processing error:", err);
@@ -140,7 +146,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
               alt="Food preview"
               width={400}
               height={300}
-              className="object-cover w-full h-auto max-h-64"
+              className="object-contain w-full h-auto max-h-64"
               data-ai-hint="food meal"
             />
           </div>
