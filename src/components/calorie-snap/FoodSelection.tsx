@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField as ShadCNFormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { SearchableSelect, type SearchableSelectItem } from './SearchableSelect';
+import { Label as BasicLabel } from '@/components/ui/label'; // Renamed to avoid conflict
 
 interface FoodSelectionProps {
   predefinedFoods: FoodItem[];
@@ -75,7 +76,6 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
             if (id) {
               quantityForm.trigger("quantity").catch(() => {});
             } else {
-               // Optionally reset quantity form if selection is cleared
                quantityForm.reset({ quantity: 1 });
             }
           }}
@@ -115,8 +115,8 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
 
               <Button
                 type="submit"
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-                disabled={!quantityForm.formState.isValid} // selectedFoodId is already checked by the outer condition
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                disabled={!quantityForm.formState.isValid}
               >
                 <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
               </Button>
