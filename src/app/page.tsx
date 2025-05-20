@@ -135,7 +135,12 @@ export default function CalorieSnapPage() {
           <div className="w-full">
             <Tabs defaultValue="manual" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                <TabsTrigger 
+                  value="manual"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md"
+                >
+                  Manual Entry
+                </TabsTrigger>
                 <TabsTrigger 
                   value="image"
                   className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
@@ -148,9 +153,8 @@ export default function CalorieSnapPage() {
                 <FoodSelection
                   predefinedFoods={allAvailableFoods}
                   onAddFood={handleAddFoodToSelection}
-                  onTriggerCustomFoodDialog={handleTriggerCustomFoodDialog} // Pass handler
+                  onTriggerCustomFoodDialog={handleTriggerCustomFoodDialog} 
                 />
-                {/* CustomFoodForm is now controlled and doesn't render its own trigger */}
                 <CustomFoodForm
                   isOpen={isCustomFoodDialogOpen}
                   onOpenChange={setIsCustomFoodDialogOpen}
@@ -164,7 +168,6 @@ export default function CalorieSnapPage() {
             </Tabs>
           </div>
 
-          {/* Current Meal Section - Conditional Rendering */}
           {selectedFoods.length > 0 && (
             <div className="w-full space-y-8 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
               <NutritionalSummary totals={totalNutrients} />
