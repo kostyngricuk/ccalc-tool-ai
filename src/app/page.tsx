@@ -10,7 +10,7 @@ import { ImageUpload } from '@/components/calorie-snap/ImageUpload';
 import { SelectedFoodsList } from '@/components/calorie-snap/SelectedFoodsList';
 import { NutritionalSummary } from '@/components/calorie-snap/NutritionalSummary';
 import { Toaster } from "@/components/ui/toaster";
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function CalorieSnapPage() {
   const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
@@ -93,13 +93,22 @@ export default function CalorieSnapPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left Column: Inputs & AI */}
           <div className="md:col-span-2 space-y-8">
-            <FoodSelection
-              predefinedFoods={allAvailableFoods}
-              onAddFood={handleAddFoodToSelection}
-            />
-            <CustomFoodForm onSave={handleSaveCustomFood} />
-            <Separator />
-            <ImageUpload />
+            <Tabs defaultValue="manual" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                <TabsTrigger value="image">Estimate from Image</TabsTrigger>
+              </TabsList>
+              <TabsContent value="manual" className="space-y-8">
+                <FoodSelection
+                  predefinedFoods={allAvailableFoods}
+                  onAddFood={handleAddFoodToSelection}
+                />
+                <CustomFoodForm onSave={handleSaveCustomFood} />
+              </TabsContent>
+              <TabsContent value="image">
+                <ImageUpload />
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Right Column: Summary & Selected List */}
