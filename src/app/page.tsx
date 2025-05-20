@@ -12,6 +12,7 @@ import { NutritionalSummary } from '@/components/calorie-snap/NutritionalSummary
 import { Toaster } from "@/components/ui/toaster";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Sparkles } from 'lucide-react';
 
 
 export default function CalorieSnapPage() {
@@ -135,7 +136,13 @@ export default function CalorieSnapPage() {
             <Tabs defaultValue="manual" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-                <TabsTrigger value="image">Estimate from Image</TabsTrigger>
+                <TabsTrigger 
+                  value="image"
+                  className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md"
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Estimate from Image
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="manual" className="space-y-8">
                 <FoodSelection
