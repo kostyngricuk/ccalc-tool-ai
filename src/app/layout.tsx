@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'CalorieSnap - AI Calorie Counter',
-  description: 'Estimate food calories from images and track your nutritional intake with CalorieSnap.',
+  title: 'AI Calorie Calculator',
+  description: 'Estimate food calories from images and track your nutritional intake with AI.',
 };
 
 export default function RootLayout({

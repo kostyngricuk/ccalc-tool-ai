@@ -1,4 +1,4 @@
-# **App Name**: CalorieSnap
+# **App Name**: AI Calorie Calculator
 
 ## Core Features:
 
