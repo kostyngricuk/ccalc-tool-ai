@@ -46,14 +46,32 @@ export default function CalorieSnapPage() {
   }, [selectedFoods, calculateTotals]);
 
   const handleAddFoodToSelection = (food: FoodItem, quantity: number) => {
+    let foodToProcess = { ...food };
+
+    // Ensure nutritionLabelDetails is populated for predefined or custom foods if not already present
+    // AI-estimated foods will have this populated by ImageUpload. Custom foods get it from CustomFoodForm.
+    if (!foodToProcess.nutritionLabelDetails && 
+        (foodToProcess.calories > 0 || foodToProcess.protein > 0 || foodToProcess.carbs > 0 || foodToProcess.fat > 0)) {
+      foodToProcess.nutritionLabelDetails = [
+        `Calories: ${foodToProcess.calories.toFixed(0)} kcal`,
+        `Protein: ${foodToProcess.protein.toFixed(1)} g`,
+        `Carbs: ${foodToProcess.carbs.toFixed(1)} g`,
+        `Fat: ${foodToProcess.fat.toFixed(1)} g`
+      ].join('\n');
+    }
+    
     setSelectedFoods((prevFoods) => {
-      const existingFood = prevFoods.find(f => f.id === food.id);
+      const existingFood = prevFoods.find(f => f.id === foodToProcess.id);
       if (existingFood) {
         return prevFoods.map(f =>
-          f.id === food.id ? { ...f, quantity: (f.quantity || 0) + quantity } : f
+          f.id === foodToProcess.id ? { 
+            ...f, 
+            quantity: (f.quantity || 0) + quantity,
+            nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails // Ensure it's preserved/updated
+          } : f
         );
       }
-      return [...prevFoods, { ...food, quantity }];
+      return [...prevFoods, { ...foodToProcess, quantity }];
     });
   };
 
@@ -70,6 +88,7 @@ export default function CalorieSnapPage() {
   };
 
   const handleSaveCustomFood = (food: FoodItem) => {
+    // CustomFoodForm now generates nutritionLabelDetails, so food object is complete
     setCustomFoods((prevFoods) => [...prevFoods, food]);
     handleAddFoodToSelection(food, 1); 
     toast({
@@ -87,11 +106,8 @@ export default function CalorieSnapPage() {
   };
 
   const handleFoodEstimatedFromImage = (foodItem: FoodItem) => {
-    // The ImageUpload component already shows a toast for "Analysis Complete"
-    // This function just adds it to the selection.
-    // The toast from ImageUpload could be modified to say "Item added to meal"
-    // or we can have a separate one here. Let's rely on the one in ImageUpload for now.
-    handleAddFoodToSelection(foodItem, 1); // Add with quantity 1
+    // ImageUpload component passes a complete FoodItem with nutritionLabelDetails
+    handleAddFoodToSelection(foodItem, 1); 
   };
 
   const allAvailableFoods = React.useMemo(() => {

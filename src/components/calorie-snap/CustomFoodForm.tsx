@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import type { FoodItem } from '@/lib/types';
@@ -29,7 +30,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FoodFormData>({
     resolver: zodResolver(foodItemSchema),
     defaultValues: {
-      name: '', // Ensure name is also reset
+      name: '',
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -40,25 +41,29 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
   const onSubmit: SubmitHandler<FoodFormData> = (data) => {
     let calculatedCalories = data.calories;
 
-    // If calories field is 0 (either default or user explicitly entered 0)
-    // AND there are macronutrients provided, then calculate calories.
     if (data.calories === 0 && (data.protein > 0 || data.carbs > 0 || data.fat > 0)) {
       calculatedCalories = Math.round((data.protein * 4) + (data.carbs * 4) + (data.fat * 9));
     }
-    // If user entered a specific non-zero value for calories, it's used.
-    // If calories is 0 and all macros are 0, calories remains 0.
+
+    const nutritionDetails = [
+      `Calories: ${calculatedCalories.toFixed(0)} kcal`,
+      `Protein: ${data.protein.toFixed(1)} g`,
+      `Carbs: ${data.carbs.toFixed(1)} g`,
+      `Fat: ${data.fat.toFixed(1)} g`
+    ].join('\n');
 
     const newFood: FoodItem = {
       id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: data.name,
-      calories: calculatedCalories, // Use the potentially recalculated value
+      calories: calculatedCalories,
       protein: data.protein,
       carbs: data.carbs,
       fat: data.fat,
       custom: true,
+      nutritionLabelDetails: nutritionDetails,
     };
     onSave(newFood);
-    reset(); // Resets form to defaultValues
+    reset(); 
     setIsOpen(false);
   };
 
@@ -66,7 +71,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
     <Dialog open={isOpen} onOpenChange={(open) => {
       setIsOpen(open);
       if (!open) {
-        reset(); // Reset form when dialog is closed externally too
+        reset(); 
       }
     }}>
       <DialogTrigger asChild>

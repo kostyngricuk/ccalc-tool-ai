@@ -26,8 +26,6 @@ export function NutritionLabel({ nutritionData }: NutritionLabelProps) {
         const isHeader = parts.length === 1 || line.toLowerCase().includes('nutrition label') || line.toLowerCase().includes('serving size') || line.toLowerCase().includes('facts');
         
         if (isHeader) {
-          // Don't render standalone headers like "Nutrition Label:" in the popover, focus on facts.
-          // Allow headers that are part of the facts list like "Total Fat" if it's not split by ":"
           if (line.toLowerCase().includes('nutrition label') || line.toLowerCase().includes('estimated nutrition facts')) return null;
           return (
              <li key={index} className={`pt-1 font-semibold ${index > 0 ? 'mt-1 border-t border-border/50' : ''}`}>
@@ -38,8 +36,8 @@ export function NutritionLabel({ nutritionData }: NutritionLabelProps) {
 
         return (
           <li key={index} className="flex justify-between">
-            <span className="font-medium_ text-muted-foreground_ mr-2">{parts[0]}:</span>
-            <span className="text-right_ text-foreground font-medium">{parts.slice(1).join(':').trim()}</span>
+            <span className="font-medium text-muted-foreground mr-2">{parts[0]}:</span>
+            <span className="text-right text-foreground font-medium">{parts.slice(1).join(':').trim()}</span>
           </li>
         );
       })}
