@@ -5,12 +5,13 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/label'; // Using standard Label
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Camera, UploadCloud, AlertTriangle, Loader2 } from 'lucide-react';
+import { UploadCloud, AlertTriangle, Loader2 } from 'lucide-react';
 import { estimateCaloriesFromImage } from '@/ai/flows/estimate-calories-from-image';
 import { useToast } from "@/hooks/use-toast";
 import type { FoodItem } from '@/lib/types';
+import { FormItem } from "@/components/ui/form"; // For structural grouping
 
 interface ImageUploadProps {
   onFoodEstimated: (foodItem: FoodItem) => void;
@@ -109,15 +110,12 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
   return (
     <Card className="shadow-xl border-2 border-accent/50">
       <CardHeader>
-        <div className="flex items-center space-x-2">
-          <Camera className="h-8 w-8 text-accent" />
-          <CardTitle className="text-2xl text-accent">Estimate from Image</CardTitle>
-        </div>
+        <CardTitle className="text-2xl text-accent">Estimate from Image</CardTitle>
         <CardDescription>Upload a photo of your meal. The estimated item will be added to your meal, and you can hover over it for nutritional details.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div>
-          <Label htmlFor="food-image-upload" className="sr-only">Upload Food Image</Label>
+        <FormItem>
+          <Label htmlFor="food-image-upload">Upload Food Image</Label>
           <Input
             id="food-image-upload"
             type="file"
@@ -129,7 +127,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Button 
             onClick={() => fileInputRef.current?.click()} 
             variant="outline" 
-            className="w-full border-dashed border-2 border-input hover:border-accent text-muted-foreground hover:text-accent py-8"
+            className="w-full border-dashed border-2 border-input hover:border-accent text-muted-foreground hover:text-accent py-8 mt-2" // Added mt-2 for spacing from label
             aria-label="Upload food image"
           >
             <div className="flex flex-col items-center space-y-2">
@@ -137,7 +135,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
               <span>{selectedFile ? selectedFile.name : "Click or drag to upload image"}</span>
             </div>
           </Button>
-        </div>
+        </FormItem>
 
         {imagePreview && (
           <div className="mt-4 border rounded-lg overflow-hidden shadow-sm">
@@ -172,7 +170,6 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
             </>
           ) : (
             <>
-              <Camera className="mr-2 h-5 w-5" />
               Estimate & Add to Meal
             </>
           )}
@@ -181,4 +178,3 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
     </Card>
   );
 }
-

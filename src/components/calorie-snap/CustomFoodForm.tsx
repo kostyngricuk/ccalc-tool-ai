@@ -9,7 +9,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Sparkles, Loader2 } from 'lucide-react';
-import { Form, FormControl, FormField as ShadCNFormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { estimateNutritionFromName } from '@/ai/flows/estimate-nutrition-from-name';
 import { useToast } from "@/hooks/use-toast";
 
@@ -138,7 +138,7 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-            <ShadCNFormField
+            <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
@@ -164,7 +164,7 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
             </Button>
             
             {nutrientFields.map(nutrient => (
-              <ShadCNFormField
+              <FormField
                 control={form.control}
                 name={nutrient.id}
                 key={nutrient.id}
