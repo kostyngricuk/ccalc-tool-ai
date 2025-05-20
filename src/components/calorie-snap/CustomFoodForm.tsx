@@ -111,6 +111,13 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
     onOpenChange(false);
   };
 
+  const nutrientFields = [
+    { id: 'calories', label: 'Calories (kcal)', type: 'number', error: errors.calories, required: false },
+    { id: 'protein', label: 'Protein (g)', type: 'number', error: errors.protein, required: false },
+    { id: 'carbs', label: 'Carbohydrates (g)', type: 'number', error: errors.carbs, required: false },
+    { id: 'fat', label: 'Fat (g)', type: 'number', error: errors.fat, required: false },
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       onOpenChange(open);
@@ -124,13 +131,35 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
-          {[
-            { id: 'name', label: 'Food Name', type: 'text', error: errors.name, required: true },
-            { id: 'calories', label: 'Calories (kcal)', type: 'number', error: errors.calories, required: false },
-            { id: 'protein', label: 'Protein (g)', type: 'number', error: errors.protein, required: false },
-            { id: 'carbs', label: 'Carbohydrates (g)', type: 'number', error: errors.carbs, required: false },
-            { id: 'fat', label: 'Fat (g)', type: 'number', error: errors.fat, required: false },
-          ].map(field => (
+          {/* Food Name Field */}
+          <div className="grid gap-2">
+            <Label htmlFor="name">
+              Food Name
+              <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              type="text"
+              className="bg-background"
+              {...register("name")}
+            />
+            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
+          </div>
+
+          {/* AI Estimate Button */}
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleAiEstimate} 
+            disabled={isAiLoading || !currentFoodName || currentFoodName.trim() === ""}
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+          >
+            {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Use AI to estimate nutrition
+          </Button>
+          
+          {/* Nutrient Fields */}
+          {nutrientFields.map(field => (
             <div key={field.id} className="grid gap-2">
               <Label htmlFor={field.id}>
                 {field.label}
@@ -148,18 +177,9 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
               {field.error && <p className="text-sm text-destructive mt-1">{field.error.message}</p>}
             </div>
           ))}
-          <DialogFooter className="gap-2 sm:space-x-0 sm:gap-3 pt-4"> {/* Increased gap */}
+
+          <DialogFooter className="gap-2 sm:space-x-0 sm:gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleAiEstimate} 
-              disabled={isAiLoading || !currentFoodName || currentFoodName.trim() === ""}
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-              Use AI
-            </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">Save Food Item</Button>
           </DialogFooter>
         </form>
