@@ -13,12 +13,13 @@ interface SelectedFoodsListProps {
   selectedFoods: FoodItem[];
   onRemoveFood: (id: string) => void;
   onUpdateQuantity: (id: string, quantity: number) => void;
-  onClearAll: () => void; // New prop
+  onClearAll: () => void;
 }
 
 export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantity, onClearAll }: SelectedFoodsListProps) {
-  const handleQuantityChange = (id: string, currentQuantity: number, delta: number) => {
-    const newQuantity = (currentQuantity || 1) + delta; // Ensure currentQuantity is at least 1 if undefined
+  
+  const handleQuantityButtonClick = (id: string, currentQuantity: number, delta: number) => {
+    const newQuantity = (currentQuantity || 1) + delta;
     if (newQuantity <= 0) {
       onRemoveFood(id);
     } else {
@@ -27,14 +28,44 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
   };
   
   const handleInputChange = (id: string, value: string) => {
-    const quantity = parseInt(value, 10);
-    if (!isNaN(quantity) && quantity > 0) {
-      onUpdateQuantity(id, quantity);
-    } else if (value === "" && selectedFoods.find(f => f.id === id)?.quantity !== undefined) {
-      // If input is cleared, and it previously had a value, set to 1 or handle as preferred
-      // For now, let's ensure it doesn't break, maybe set to 1
-      onUpdateQuantity(id, 1); 
+    if (value === "") {
+      // Let onBlur handle empty input if user leaves it empty
+      // Or, you could temporarily set an 'invalid' visual state on the input
+      return;
     }
+
+    const quantity = parseFloat(value);
+
+    if (!isNaN(quantity)) {
+      if (quantity <= 0) {
+        onRemoveFood(id); // Remove item if quantity is 0 or negative
+      } else {
+        onUpdateQuantity(id, quantity);
+      }
+    }
+    // If not a valid number (e.g. "abc"), do nothing for now.
+    // Browser's type="number" might prevent some, onBlur will catch others.
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>, itemId: string) => {
+    const foodItem = selectedFoods.find(f => f.id === itemId);
+    if (!foodItem) return; // Item might have been removed by handleInputChange
+
+    const currentValue = e.target.value;
+    
+    if (currentValue === "") {
+      // If blurred while empty, reset quantity to 1
+      onUpdateQuantity(itemId, 1);
+      return;
+    }
+    
+    const quantity = parseFloat(currentValue);
+    if (isNaN(quantity) || quantity <= 0) {
+      // If blurred with invalid text (e.g. "abc") or non-positive number (e.g. "-5")
+      // (and item wasn't already removed if "0" was typed), reset to 1.
+      onUpdateQuantity(itemId, 1);
+    }
+    // If it was a valid positive number, handleInputChange would have already set it.
   };
 
   return (
@@ -55,7 +86,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
         {selectedFoods.length === 0 ? (
           <p className="text-muted-foreground">No items added to your meal yet. Select items from the list or add custom food.</p>
         ) : (
-          <ScrollArea className="max-h-[400px] pr-3">
+          <ScrollArea className="max-h-[400px] pr-3"> {/* Consider max-h-[calc(100vh-X)] if footer is an issue */}
             <Table>
               <TableHeader>
                 <TableRow>
@@ -71,29 +102,25 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-center w-36">
                       <div className="flex items-center justify-center space-x-1">
-                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleQuantityChange(item.id, item.quantity || 1, -1)} aria-label="Decrease quantity">
+                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleQuantityButtonClick(item.id, item.quantity || 1, -1)} aria-label="Decrease quantity">
                           <MinusCircle className="h-4 w-4" />
                         </Button>
                         <Input
                           type="number"
-                          min="1" // Min attribute for native validation, actual logic handles 0 via button
-                          value={item.quantity || 1}
+                          step="any" // Allow decimals
+                          min="0" // Allow typing 0, logic will handle removal
+                          value={item.quantity === undefined ? '' : String(item.quantity)} // Display current quantity or empty for editing
                           onChange={(e) => handleInputChange(item.id, e.target.value)}
-                          onBlur={(e) => { // Ensure quantity is at least 1 on blur if input is empty or invalid
-                            const val = parseInt(e.target.value, 10);
-                            if (isNaN(val) || val < 1) {
-                              onUpdateQuantity(item.id, 1);
-                            }
-                          }}
+                          onBlur={(e) => handleInputBlur(e, item.id)}
                           className="h-8 w-12 text-center px-1"
                           aria-label={`Quantity for ${item.name}`}
                         />
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleQuantityChange(item.id, item.quantity || 1, 1)} aria-label="Increase quantity">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleQuantityButtonClick(item.id, item.quantity || 1, 1)} aria-label="Increase quantity">
                           <PlusCircle className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{(item.calories * (item.quantity || 1)).toFixed(0)}</TableCell>
+                    <TableCell className="text-right">{(item.calories * (item.quantity || 0)).toFixed(0)}</TableCell> {/* Use 0 if quantity is undefined for calculation */}
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:text-destructive/80 h-8 w-8" aria-label={`Remove ${item.name}`}>
                         <Trash2 className="h-4 w-4" />
