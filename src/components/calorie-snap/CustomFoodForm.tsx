@@ -1,15 +1,17 @@
 
 'use client';
-import React, { useEffect } from 'react'; // Added useEffect
+import React, { useEffect, useState } from 'react';
 import type { FoodItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Removed DialogTrigger, DialogClose
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-// Removed PlusSquare as trigger is gone
+import { Sparkles, Loader2 } from 'lucide-react'; // Added Sparkles and Loader2
+import { estimateNutritionFromName } from '@/ai/flows/estimate-nutrition-from-name'; // Import the new flow
+import { useToast } from "@/hooks/use-toast";
 
 const foodItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -23,15 +25,15 @@ type FoodFormData = z.infer<typeof foodItemSchema>;
 
 interface CustomFoodFormProps {
   onSave: (food: FoodItem) => void;
-  isOpen: boolean; // New prop
-  onOpenChange: (open: boolean) => void; // New prop
-  initialFoodName?: string; // New prop
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialFoodName?: string;
 }
 
 export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }: CustomFoodFormProps) {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FoodFormData>({
+  const { register, handleSubmit, reset, formState: { errors }, setValue, getValues, watch } = useForm<FoodFormData>({
     resolver: zodResolver(foodItemSchema),
-    defaultValues: { // Default values will be overridden by reset in useEffect
+    defaultValues: {
       name: '',
       calories: 0,
       protein: 0,
@@ -39,6 +41,9 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
       fat: 0,
     }
   });
+  const { toast } = useToast();
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const currentFoodName = watch("name");
 
   useEffect(() => {
     if (isOpen) {
@@ -51,6 +56,32 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
       });
     }
   }, [isOpen, initialFoodName, reset]);
+
+  const handleAiEstimate = async () => {
+    const foodName = getValues("name");
+    if (!foodName.trim()) {
+      toast({ variant: "destructive", title: "Food Name Required", description: "Please enter a food name to use AI estimation." });
+      return;
+    }
+    setIsAiLoading(true);
+    try {
+      const result = await estimateNutritionFromName({ foodName });
+      setValue("calories", result.calories, { shouldValidate: true });
+      setValue("protein", result.protein, { shouldValidate: true });
+      setValue("carbs", result.carbs, { shouldValidate: true });
+      setValue("fat", result.fat, { shouldValidate: true });
+      toast({ title: "AI Estimation Complete", description: "Nutritional values have been populated." });
+    } catch (error) {
+      console.error("AI Nutrition Estimation error:", error);
+      let userErrorMessage = "Could not estimate nutrition. Please try again or enter manually.";
+      if (error instanceof Error && error.message.includes("503")) {
+        userErrorMessage = "The AI service is temporarily overloaded. Please try again in a few moments.";
+      }
+      toast({ variant: "destructive", title: "AI Error", description: userErrorMessage });
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const onSubmit: SubmitHandler<FoodFormData> = (data) => {
     let calculatedCalories = data.calories;
@@ -77,22 +108,19 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
       nutritionLabelDetails: nutritionDetails,
     };
     onSave(newFood);
-    onOpenChange(false); // Close dialog using prop
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
-      onOpenChange(open); // Control via prop
-      if (!open) {
-        // reset(); // Reset is handled by useEffect on open
-      }
+      onOpenChange(open);
     }}>
-      {/* DialogTrigger is removed */}
       <DialogContent className="sm:max-w-[480px] bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl text-primary">Add Custom Food Item</DialogTitle>
           <DialogDescription>
-            Enter the nutritional information for "{initialFoodName || 'your new item'}". Calories will be auto-calculated if left at 0 and macros are provided.
+            Enter the nutritional information for "{initialFoodName || currentFoodName || 'your new item'}". 
+            Or, use AI to estimate. Calories will be auto-calculated if left at 0 and macros are provided.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
@@ -122,7 +150,17 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
             </div>
           ))}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button> {/* Use onOpenChange */}
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleAiEstimate} 
+              disabled={isAiLoading || !currentFoodName || currentFoodName.trim() === ""}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              Use AI
+            </Button>
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">Save Food Item</Button>
           </DialogFooter>
         </form>
