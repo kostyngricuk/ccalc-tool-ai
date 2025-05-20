@@ -1,18 +1,12 @@
 import type {Metadata} from 'next';
-import { Inter } from 'next/font/google'; // Changed from Geist_Sans to Inter
+import { Inter } from 'next/font/google';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"; // Import Toaster
+import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ // Changed from geistSans to inter
-  variable: '--font-inter', // Changed CSS variable name
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 });
-
-// Geist Mono is not explicitly used, but kept for consistency if needed.
-// const geistMono = Geist_Mono({ 
-//   variable: '--font-geist-mono',
-//   subsets: ['latin'],
-// });
 
 export const metadata: Metadata = {
   title: 'CalorieSnap - AI Calorie Counter',
@@ -25,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}> {/* Apply updated font variable to html */}
-      <body className={`antialiased`}> 
+    <html lang="en" className={inter.variable}>
+      <body className="antialiased">
         {children}
         <Toaster />
       </body>
