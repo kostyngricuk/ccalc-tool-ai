@@ -141,7 +141,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                             </span>
                           </div>
 
-                          <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:text-destructive/80 h-8 w-8" aria-label={`Remove ${item.name}`}>
+                          <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:bg-transparent hover:text-foreground h-8 w-8" aria-label={`Remove ${item.name}`}>
                             <Trash2 className="h-5 w-5" /> 
                           </Button>
                         </div>
@@ -157,3 +157,4 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
     </Card>
   );
 }
+
