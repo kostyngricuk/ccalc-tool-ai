@@ -11,6 +11,8 @@ import { SelectedFoodsList } from '@/components/calorie-snap/SelectedFoodsList';
 import { NutritionalSummary } from '@/components/calorie-snap/NutritionalSummary';
 import { Toaster } from "@/components/ui/toaster";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function CalorieSnapPage() {
   const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
@@ -22,6 +24,7 @@ export default function CalorieSnapPage() {
     carbs: 0,
     fat: 0,
   });
+  const { toast } = useToast();
 
   const calculateTotals = useCallback(() => {
     const totals = selectedFoods.reduce(
@@ -68,18 +71,30 @@ export default function CalorieSnapPage() {
 
   const handleSaveCustomFood = (food: FoodItem) => {
     setCustomFoods((prevFoods) => [...prevFoods, food]);
-    // Optionally, add to predefined list for future selection if desired, or keep separate
-    // For this version, custom foods are just for the current session's selection list
-    handleAddFoodToSelection(food, 1); // Add new custom food to selection with quantity 1
+    handleAddFoodToSelection(food, 1); 
+    toast({
+        title: "Custom Food Added",
+        description: `${food.name} has been added to your meal.`,
+    });
   };
   
   const handleClearAllSelectedFoods = () => {
     setSelectedFoods([]);
+    toast({
+        title: "Meal Cleared",
+        description: "All items have been removed from your current meal.",
+    });
   };
 
-  // Combine predefined and custom foods for the FoodSelection component
+  const handleFoodEstimatedFromImage = (foodItem: FoodItem) => {
+    // The ImageUpload component already shows a toast for "Analysis Complete"
+    // This function just adds it to the selection.
+    // The toast from ImageUpload could be modified to say "Item added to meal"
+    // or we can have a separate one here. Let's rely on the one in ImageUpload for now.
+    handleAddFoodToSelection(foodItem, 1); // Add with quantity 1
+  };
+
   const allAvailableFoods = React.useMemo(() => {
-    // Ensure no duplicate IDs if custom foods could somehow match predefined
     const customFoodIds = new Set(customFoods.map(cf => cf.id));
     const uniquePredefined = predefinedFoods.filter(pf => !customFoodIds.has(pf.id));
     return [...uniquePredefined, ...customFoods];
@@ -91,7 +106,6 @@ export default function CalorieSnapPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Left Column: Inputs & AI */}
           <div className="md:col-span-2 space-y-8">
             <Tabs defaultValue="manual" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -106,12 +120,11 @@ export default function CalorieSnapPage() {
                 <CustomFoodForm onSave={handleSaveCustomFood} />
               </TabsContent>
               <TabsContent value="image">
-                <ImageUpload />
+                <ImageUpload onFoodEstimated={handleFoodEstimatedFromImage} />
               </TabsContent>
             </Tabs>
           </div>
 
-          {/* Right Column: Summary & Selected List */}
           <div className="md:col-span-1 space-y-8">
             <NutritionalSummary totals={totalNutrients} />
             <SelectedFoodsList

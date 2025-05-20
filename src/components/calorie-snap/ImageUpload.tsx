@@ -11,9 +11,13 @@ import { Camera, UploadCloud, AlertTriangle, Loader2 } from 'lucide-react';
 import { estimateCaloriesFromImage, EstimateCaloriesFromImageOutput } from '@/ai/flows/estimate-calories-from-image';
 import { NutritionLabel } from './NutritionLabel';
 import { useToast } from "@/hooks/use-toast";
+import type { FoodItem } from '@/lib/types';
 
+interface ImageUploadProps {
+  onFoodEstimated: (foodItem: FoodItem) => void;
+}
 
-export function ImageUpload() {
+export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -47,21 +51,37 @@ export function ImageUpload() {
     setNutritionResult(null);
 
     try {
-      // The imagePreview is already a data URI (checked by FileReader onloadend)
       const result = await estimateCaloriesFromImage({ photoDataUri: imagePreview });
       setNutritionResult(result);
+      
+      const { itemName, calories, protein, carbs, fat } = result;
+      const newFoodItem: FoodItem = {
+        id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: itemName || 'Scanned Meal',
+        calories: calories || 0,
+        protein: protein || 0,
+        carbs: carbs || 0,
+        fat: fat || 0,
+        quantity: 1,
+        custom: true, 
+      };
+      onFoodEstimated(newFoodItem);
+
       toast({
         title: "Analysis Complete!",
-        description: "Nutritional information estimated successfully.",
+        description: "Nutritional information estimated. Item added to your meal.",
       });
+
     } catch (err) {
       console.error("AI processing error:", err);
       let userErrorMessage = "An unknown error occurred during image analysis.";
       if (err instanceof Error) {
         if (err.message.includes("503") || err.message.toLowerCase().includes("service unavailable") || err.message.toLowerCase().includes("model is overloaded")) {
           userErrorMessage = "The AI service is temporarily overloaded. Please try again in a few moments.";
+        } else if (err.message.toLowerCase().includes("deadline exceeded")) {
+          userErrorMessage = "The request to the AI service timed out. Please try again.";
         } else {
-          userErrorMessage = err.message; // Use the actual error message if it's not an overload
+          userErrorMessage = err.message;
         }
       }
       setError(userErrorMessage);
@@ -82,7 +102,7 @@ export function ImageUpload() {
           <Camera className="h-8 w-8 text-accent" />
           <CardTitle className="text-2xl text-accent">Estimate from Image</CardTitle>
         </div>
-        <CardDescription>Upload a photo of your meal to get an AI-powered nutritional estimate.</CardDescription>
+        <CardDescription>Upload a photo of your meal to get an AI-powered nutritional estimate. The result will be added to your current meal.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
@@ -137,17 +157,17 @@ export function ImageUpload() {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Estimating...
+              Estimating & Adding...
             </>
           ) : (
             <>
               <Camera className="mr-2 h-5 w-5" />
-              Estimate Calories
+              Estimate & Add to Meal
             </>
           )}
         </Button>
         
-        <NutritionLabel nutritionData={nutritionResult?.nutritionLabel ?? null} isLoading={isLoading && !error} />
+        <NutritionLabel nutritionData={nutritionResult?.nutritionLabel ?? null} isLoading={isLoading && !error && !nutritionResult} />
 
       </CardContent>
     </Card>

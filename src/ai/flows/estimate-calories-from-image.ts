@@ -1,4 +1,4 @@
-// 'use server'
+
 'use server';
 
 /**
@@ -24,10 +24,15 @@ export type EstimateCaloriesFromImageInput = z.infer<
 >;
 
 const EstimateCaloriesFromImageOutputSchema = z.object({
+  itemName: z.string().describe('A descriptive name for the meal in the image (e.g., "Mixed Salad with Chicken", "Fruit Bowl"). Default to "Scanned Meal" if not identifiable.'),
+  calories: z.number().describe('Estimated total calories in kcal. Default to 0 if not determinable.'),
+  protein: z.number().describe('Estimated total protein in grams. Default to 0 if not determinable.'),
+  carbs: z.number().describe('Estimated total carbohydrates in grams. Default to 0 if not determinable.'),
+  fat: z.number().describe('Estimated total fat in grams. Default to 0 if not determinable.'),
   nutritionLabel: z
     .string()
     .describe(
-      'A formatted nutrition label summarizing the estimated nutritional content of the meal, including calories, fats, carbohydrates, and proteins.'
+      'A formatted nutrition label summarizing the estimated nutritional content of the meal, including calories, fats, carbohydrates, and proteins. This is for display purposes.'
     ),
 });
 export type EstimateCaloriesFromImageOutput = z.infer<
@@ -44,7 +49,15 @@ const prompt = ai.definePrompt({
   name: 'estimateCaloriesFromImagePrompt',
   input: {schema: EstimateCaloriesFromImageInputSchema},
   output: {schema: EstimateCaloriesFromImageOutputSchema},
-  prompt: `Analyze the food in the following image and provide an estimated nutrition label in a human-readable format, including total calories, fats, carbohydrates, and proteins.\n\nImage: {{media url=photoDataUri}}`,
+  prompt: `Analyze the food in the following image. 
+Provide a descriptive name for the meal (e.g., "Mixed Salad with Chicken", "Fruit Bowl"). If you cannot identify a specific name, use "Scanned Meal".
+Estimate its total calories (as a number, e.g., 350). If not determinable, use 0.
+Estimate its total protein in grams (as a number, e.g., 15.5). If not determinable, use 0.
+Estimate its total carbohydrates in grams (as a number, e.g., 45.2). If not determinable, use 0.
+Estimate its total fat in grams (as a number, e.g., 12.0). If not determinable, use 0.
+Finally, generate a human-readable formatted nutrition label string summarizing this information for display, including total calories, fats, carbohydrates, and proteins.
+
+Image: {{media url=photoDataUri}}`,
 });
 
 const estimateCaloriesFromImageFlow = ai.defineFlow(
@@ -58,3 +71,4 @@ const estimateCaloriesFromImageFlow = ai.defineFlow(
     return output!;
   }
 );
+
