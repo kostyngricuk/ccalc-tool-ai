@@ -25,6 +25,7 @@ export function FoodSelection({ predefinedFoods, onAddFood }: FoodSelectionProps
       if (foodToAdd && quantity > 0) {
         onAddFood(foodToAdd, quantity);
         setSelectedFoodId(undefined); // Reset select
+        setSearchTerm(''); // Reset search term
         setQuantity(1); // Reset quantity
       }
     }
@@ -38,20 +39,9 @@ export function FoodSelection({ predefinedFoods, onAddFood }: FoodSelectionProps
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl text-primary">Select Food Item</CardTitle>
-        <CardDescription>Choose from a list of common foods or add your own.</CardDescription>
+        <CardDescription>Choose from a list of common foods or add your own. Type to search within the list.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="food-search">Search Food</Label>
-          <Input
-            id="food-search"
-            placeholder="e.g., Apple, Chicken Breast"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-card"
-          />
-        </div>
-        
         <div className="space-y-2">
           <Label htmlFor="food-select">Food Item</Label>
           <Select value={selectedFoodId} onValueChange={setSelectedFoodId}>
@@ -59,6 +49,15 @@ export function FoodSelection({ predefinedFoods, onAddFood }: FoodSelectionProps
               <SelectValue placeholder="Select a food item" />
             </SelectTrigger>
             <SelectContent>
+              <div className="p-2 sticky top-0 bg-popover z-10"> {/* Make search input sticky */}
+                <Input
+                  placeholder="Search food..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-background border-input mb-2" 
+                  aria-label="Search food items"
+                />
+              </div>
               <ScrollArea className="h-[200px]">
                 {filteredFoods.length > 0 ? (
                   filteredFoods.map((food) => (
