@@ -5,11 +5,11 @@ import type { FoodItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Sparkles, Loader2 } from 'lucide-react';
+import { Form, FormControl, FormField as ShadCNFormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { estimateNutritionFromName } from '@/ai/flows/estimate-nutrition-from-name';
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,7 +31,7 @@ interface CustomFoodFormProps {
 }
 
 export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }: CustomFoodFormProps) {
-  const { register, handleSubmit, reset, formState: { errors }, setValue, getValues, watch } = useForm<FoodFormData>({
+  const form = useForm<FoodFormData>({
     resolver: zodResolver(foodItemSchema),
     defaultValues: {
       name: '',
@@ -43,11 +43,11 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
   });
   const { toast } = useToast();
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const currentFoodName = watch("name");
+  const currentFoodName = form.watch("name");
 
   useEffect(() => {
     if (isOpen) {
-      reset({
+      form.reset({
         name: initialFoodName || '',
         calories: 0,
         protein: 0,
@@ -55,10 +55,10 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
         fat: 0,
       });
     }
-  }, [isOpen, initialFoodName, reset]);
+  }, [isOpen, initialFoodName, form]);
 
   const handleAiEstimate = async () => {
-    const foodName = getValues("name");
+    const foodName = form.getValues("name");
     if (!foodName.trim()) {
       toast({ variant: "destructive", title: "Food Name Required", description: "Please enter a food name to use AI estimation." });
       return;
@@ -66,10 +66,10 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
     setIsAiLoading(true);
     try {
       const result = await estimateNutritionFromName({ foodName });
-      setValue("calories", result.calories, { shouldValidate: true });
-      setValue("protein", result.protein, { shouldValidate: true });
-      setValue("carbs", result.carbs, { shouldValidate: true });
-      setValue("fat", result.fat, { shouldValidate: true });
+      form.setValue("calories", result.calories, { shouldValidate: true });
+      form.setValue("protein", result.protein, { shouldValidate: true });
+      form.setValue("carbs", result.carbs, { shouldValidate: true });
+      form.setValue("fat", result.fat, { shouldValidate: true });
       toast({ title: "AI Estimation Complete", description: "Nutritional values have been populated." });
     } catch (error) {
       console.error("AI Nutrition Estimation error:", error);
@@ -117,11 +117,11 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
     onOpenChange(false);
   };
 
-  const nutrientFields = [
-    { id: 'calories', label: 'Calories (kcal)', type: 'number', error: errors.calories, required: false },
-    { id: 'protein', label: 'Protein (g)', type: 'number', error: errors.protein, required: false },
-    { id: 'carbs', label: 'Carbohydrates (g)', type: 'number', error: errors.carbs, required: false },
-    { id: 'fat', label: 'Fat (g)', type: 'number', error: errors.fat, required: false },
+  const nutrientFields: Array<{id: keyof FoodFormData, label: string, type: string}> = [
+    { id: 'calories', label: 'Calories (kcal)', type: 'number' },
+    { id: 'protein', label: 'Protein (g)', type: 'number' },
+    { id: 'carbs', label: 'Carbohydrates (g)', type: 'number' },
+    { id: 'fat', label: 'Fat (g)', type: 'number' },
   ];
 
   return (
@@ -136,59 +136,63 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
             Or, use AI to estimate. Calories will be auto-calculated if left at 0 and macros are provided.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
-          {/* Food Name Field */}
-          <div className="grid gap-2">
-            <Label htmlFor="name">
-              Food Name
-              <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="name"
-              type="text"
-              className="bg-background"
-              {...register("name")}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <ShadCNFormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Food Name*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Apple" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name.message}</p>}
-          </div>
 
-          {/* AI Estimate Button */}
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleAiEstimate} 
-            disabled={isAiLoading || !currentFoodName || currentFoodName.trim() === ""}
-            className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            Use AI to estimate nutrition
-          </Button>
-          
-          {/* Nutrient Fields */}
-          {nutrientFields.map(field => (
-            <div key={field.id} className="grid gap-2">
-              <Label htmlFor={field.id}>
-                {field.label}
-                {field.required && <span className="text-destructive">*</span>}
-              </Label>
-              <Input
-                id={field.id}
-                type={field.type}
-                step={field.type === 'number' ? (field.id === 'calories' ? '1' : '0.1') : undefined}
-                className="bg-background"
-                {...register(field.id as keyof FoodFormData, {
-                    valueAsNumber: field.type === 'number'
-                })}
+            <Button 
+              type="button" 
+              onClick={handleAiEstimate}
+              variant="outline" 
+              disabled={isAiLoading || !currentFoodName || currentFoodName.trim() === ""}
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              {isAiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              Use AI to estimate nutrition for "{currentFoodName || 'item'}"
+            </Button>
+            
+            {nutrientFields.map(nutrient => (
+              <ShadCNFormField
+                control={form.control}
+                name={nutrient.id}
+                key={nutrient.id}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{nutrient.label}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type={nutrient.type}
+                        step={nutrient.type === 'number' ? (nutrient.id === 'calories' ? '1' : '0.1') : undefined}
+                        {...field}
+                        onChange={(e) => field.onChange(nutrient.type === 'number' ? (e.target.value === '' ? 0 : parseFloat(e.target.value) || 0) : e.target.value)}
+                        value={field.value === undefined || field.value === null ? '' : String(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {field.error && <p className="text-sm text-destructive mt-1">{field.error.message}</p>}
+            ))}
+            <div className="flex justify-end space-x-3 pt-2">
+              <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Save Food Item
+              </Button>
             </div>
-          ))}
-
-          <DialogFooter className="gap-2 sm:space-x-0 sm:gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">Save Food Item</Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
