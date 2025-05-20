@@ -72,7 +72,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
               variant="ghost"
               size="icon" 
               onClick={onClearAll}
-              className="text-destructive hover:text-destructive/80"
+              className="text-destructive hover:bg-transparent hover:text-foreground"
               aria-label="Clear Meal" 
             >
               <RefreshCcw className="h-5 w-5" />
