@@ -49,7 +49,16 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
     try {
       const result = await estimateCaloriesFromImage({ photoDataUri: imagePreview });
       
-      const { itemName, calories, protein, carbs, fat, nutritionLabel } = result;
+      const { itemName, calories, protein, carbs, fat } = result; // We'll use these structured values
+
+      // Construct the nutritionLabelDetails string for consistency
+      const nutritionDetailsString = [
+        `Calories: ${(calories || 0).toFixed(0)} kcal`,
+        `Protein: ${(protein || 0).toFixed(1)} g`,
+        `Carbs: ${(carbs || 0).toFixed(1)} g`,
+        `Fat: ${(fat || 0).toFixed(1)} g`
+      ].join('\n');
+
       const newFoodItem: FoodItem = {
         id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: itemName || 'Scanned Meal',
@@ -59,7 +68,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
         fat: fat || 0,
         quantity: 1,
         custom: true, 
-        nutritionLabelDetails: nutritionLabel, // Store the detailed label
+        nutritionLabelDetails: nutritionDetailsString, // Use the consistently formatted string
       };
       onFoodEstimated(newFoodItem);
 
@@ -166,3 +175,4 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
     </Card>
   );
 }
+
