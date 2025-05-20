@@ -19,10 +19,10 @@ export type EstimateNutritionFromNameInput = z.infer<
 >;
 
 const EstimateNutritionFromNameOutputSchema = z.object({
-  calories: z.number().default(0).describe('Estimated total calories in kcal for a standard serving. Default to 0 if not determinable.'),
-  protein: z.number().default(0).describe('Estimated total protein in grams for a standard serving. Default to 0 if not determinable.'),
-  carbs: z.number().default(0).describe('Estimated total carbohydrates in grams for a standard serving. Default to 0 if not determinable.'),
-  fat: z.number().default(0).describe('Estimated total fat in grams for a standard serving. Default to 0 if not determinable.'),
+  calories: z.number().nullable().transform(val => val ?? 0).default(0).describe('Estimated total calories in kcal for a standard serving. Default to 0 if not determinable.'),
+  protein: z.number().nullable().transform(val => val ?? 0).default(0).describe('Estimated total protein in grams for a standard serving. Default to 0 if not determinable.'),
+  carbs: z.number().nullable().transform(val => val ?? 0).default(0).describe('Estimated total carbohydrates in grams for a standard serving. Default to 0 if not determinable.'),
+  fat: z.number().nullable().transform(val => val ?? 0).default(0).describe('Estimated total fat in grams for a standard serving. Default to 0 if not determinable.'),
 });
 export type EstimateNutritionFromNameOutput = z.infer<
   typeof EstimateNutritionFromNameOutputSchema
@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   output: {schema: EstimateNutritionFromNameOutputSchema},
   prompt: `You are a nutritional assistant. Given the food name, estimate its typical nutritional values for a standard serving. 
 Provide calories (kcal), protein (grams), carbohydrates (grams), and fat (grams). 
-If any value cannot be reliably determined, use 0 for that value. 
+If any value cannot be reliably determined, use 0 for that value. Do not return null.
 Only return the numerical values as per the output schema.
 Food Name: {{{foodName}}}`,
 });
