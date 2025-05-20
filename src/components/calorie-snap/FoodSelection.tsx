@@ -5,10 +5,14 @@ import type { FoodItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, PlusSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label as BasicLabel } from '@/components/ui/label'; // Renamed to avoid conflict
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 interface FoodSelectionProps {
   predefinedFoods: FoodItem[];
@@ -16,21 +20,33 @@ interface FoodSelectionProps {
   onTriggerCustomFoodDialog: (searchTerm: string) => void;
 }
 
+const quantityFormSchema = z.object({
+  quantity: z.coerce.number().min(0.1, { message: "Quantity must be at least 0.1." }).default(1),
+});
+type QuantityFormData = z.infer<typeof quantityFormSchema>;
+
 export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodDialog }: FoodSelectionProps) {
   const [selectedFoodId, setSelectedFoodId] = useState<string | undefined>(undefined);
-  const [quantity, setQuantity] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [isSelectOpen, setIsSelectOpen] = useState(false); // Control Select open state
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
 
-  const handleAddFood = () => {
+  const quantityForm = useForm<QuantityFormData>({
+    resolver: zodResolver(quantityFormSchema),
+    defaultValues: {
+      quantity: 1,
+    },
+    mode: "onChange", 
+  });
+
+  const handleAddFoodSubmit = (data: QuantityFormData) => {
     if (selectedFoodId) {
       const foodToAdd = predefinedFoods.find(f => f.id === selectedFoodId);
-      if (foodToAdd && quantity > 0) {
-        onAddFood(foodToAdd, quantity);
+      if (foodToAdd) {
+        onAddFood(foodToAdd, data.quantity);
         setSelectedFoodId(undefined);
         setSearchTerm('');
-        setQuantity(1);
-        // Note: Select dropdown would have already closed upon item selection.
+        quantityForm.reset({ quantity: 1 });
+        setIsSelectOpen(false); 
       }
     }
   };
@@ -41,12 +57,11 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
 
   const handleFoodSelected = (foodId: string) => {
     setSelectedFoodId(foodId);
-    // setIsSelectOpen(false); // Select component handles this via onOpenChange
   };
 
   const handleCustomFoodTrigger = () => {
     onTriggerCustomFoodDialog(searchTerm);
-    setIsSelectOpen(false); // Close the dropdown
+    setIsSelectOpen(false); 
   };
 
   return (
@@ -57,14 +72,15 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="food-select">Food Item</Label>
+          <BasicLabel htmlFor="food-select">Food Item</BasicLabel>
           <Select
+            id="food-select"
             open={isSelectOpen}
             onOpenChange={setIsSelectOpen}
             value={selectedFoodId}
             onValueChange={handleFoodSelected}
           >
-            <SelectTrigger id="food-select" className="w-full bg-card">
+            <SelectTrigger className="w-full bg-card">
               <SelectValue placeholder="Select or search for a food item" />
             </SelectTrigger>
             <SelectContent>
@@ -113,20 +129,39 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="quantity-select">Quantity</Label>
-          <Input
-            id="quantity-select"
-            type="number"
-            min="1"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
-            className="w-full bg-card"
-          />
-        </div>
-        <Button onClick={handleAddFood} className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={!selectedFoodId || quantity <= 0}>
-          <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
-        </Button>
+        <Form {...quantityForm}>
+          <form onSubmit={quantityForm.handleSubmit(handleAddFoodSubmit)} className="space-y-6">
+            <FormField
+              control={quantityForm.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel htmlFor="quantity-input">Quantity</FormLabel>
+                  <FormControl>
+                    <Input
+                      id="quantity-input"
+                      type="number"
+                      min="0.1" 
+                      step="0.1"
+                      {...field}
+                      className="w-full bg-card"
+                      placeholder="e.g., 1 or 0.5"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button 
+              type="submit"
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90" 
+              disabled={!selectedFoodId || !quantityForm.formState.isValid}
+            >
+              <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
