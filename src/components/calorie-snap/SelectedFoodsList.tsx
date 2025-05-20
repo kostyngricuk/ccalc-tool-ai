@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NutritionLabel } from './NutritionLabel';
-import { Trash2, PlusCircle, MinusCircle, Info } from 'lucide-react';
+import { Recycle, PlusCircle, MinusCircle, Info, Trash2 } from 'lucide-react';
 import React from 'react';
 
 interface SelectedFoodsListProps {
@@ -19,32 +19,32 @@ interface SelectedFoodsListProps {
 }
 
 export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantity, onClearAll }: SelectedFoodsListProps) {
-  
+
   const handleQuantityButtonClick = (id: string, currentQuantity: number | undefined, delta: number) => {
-    const newQuantity = (currentQuantity || 1) + delta; // Default to 1 if undefined
+    const newQuantity = (currentQuantity || 1) + delta;
     if (newQuantity <= 0) {
       onRemoveFood(id);
     } else {
       onUpdateQuantity(id, newQuantity);
     }
   };
-  
+
   const handleInputChange = (id: string, value: string) => {
     if (value === "") {
-      onUpdateQuantity(id, undefined); 
+      onUpdateQuantity(id, undefined);
       return;
     }
 
-    const quantity = parseFloat(value.replace(',', '.')); 
+    const quantity = parseFloat(value.replace(',', '.'));
 
     if (!isNaN(quantity)) {
       if (quantity <= 0) {
-        onRemoveFood(id); 
+        onRemoveFood(id);
       } else {
         onUpdateQuantity(id, quantity);
       }
     } else {
-       onUpdateQuantity(id, undefined); 
+       onUpdateQuantity(id, undefined);
     }
   };
 
@@ -53,15 +53,11 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
     if (!foodItem) return;
 
     const currentValue = e.target.value.replace(',', '.');
-    
+
     if (currentValue.trim() === "" || isNaN(parseFloat(currentValue)) || parseFloat(currentValue) <= 0) {
-      // If input is empty, or not a number, or zero/negative on blur, reset to 1 or remove if that's preferred.
-      // For now, reset to 1, as removing on blur might be too aggressive if user accidentally clears it.
-      // Or, if current foodItem.quantity is undefined (meaning it was invalid before), set to 1
       if (foodItem.quantity === undefined || currentValue.trim() === "") {
-        onUpdateQuantity(itemId, 1); 
+        onUpdateQuantity(itemId, 1);
       }
-      // if it became 0 or less (e.g. from "-5"), it should have been removed by handleInputChange already
       return;
     }
   };
@@ -72,9 +68,14 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
         <div className="flex justify-between items-center">
           <CardTitle className="text-2xl text-primary">Current Meal</CardTitle>
           {selectedFoods.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={onClearAll} className="text-destructive hover:text-destructive/80">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear Meal
+            <Button
+              variant="ghost"
+              size="icon" // Set size to icon
+              onClick={onClearAll}
+              className="text-destructive hover:text-destructive/80"
+              aria-label="Clear Meal" // Added aria-label
+            >
+              <Recycle className="h-5 w-5" /> {/* Changed icon to Recycle */}
             </Button>
           )}
         </div>
@@ -91,15 +92,14 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                   <TableRow key={item.id} className="hover:bg-secondary/30 transition-colors">
                     <TableCell className="font-medium py-3">
                       <div className="flex flex-col">
-                        {/* First line: Name and Info Icon */}
                         <div className="flex items-center mb-2">
                           <span className="font-semibold text-base mr-1 truncate" title={item.name}>{item.name}</span>
                           {item.nutritionLabelDetails && (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
                                   className="p-0 h-5 w-5 inline-flex items-center justify-center text-accent hover:text-accent/80 hover:bg-transparent"
                                   aria-label="Show nutrition details"
                                 >
@@ -116,18 +116,16 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                           )}
                         </div>
 
-                        {/* Second line: Quantity Controls, Calories, and Remove Button */}
                         <div className="flex items-center justify-between text-sm mt-1">
-                          <div className="flex items-center space-x-3"> {/* Group Quantity and Calories */}
-                            {/* Quantity Controls */}
+                          <div className="flex items-center space-x-3">
                             <div className="flex items-center space-x-1">
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => handleQuantityButtonClick(item.id, item.quantity, -1)} aria-label="Decrease quantity">
                                 <MinusCircle className="h-5 w-5" />
                               </Button>
                               <Input
-                                type="text" 
-                                inputMode="decimal" 
-                                pattern="[0-9]*[.,]?[0-9]*" 
+                                type="text"
+                                inputMode="decimal"
+                                pattern="[0-9]*[.,]?[0-9]*"
                                 value={item.quantity === undefined ? '' : String(item.quantity).replace('.',',')}
                                 onChange={(e) => handleInputChange(item.id, e.target.value)}
                                 onBlur={(e) => handleInputBlur(e, item.id)}
@@ -138,15 +136,13 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                                 <PlusCircle className="h-5 w-5" />
                               </Button>
                             </div>
-                            {/* Calories Display */}
                             <span className="text-foreground font-medium">
                               {(item.calories * (Number(item.quantity) || 0)).toFixed(0)} kcal
                             </span>
                           </div>
 
-                          {/* Remove Button */}
                           <Button variant="ghost" size="icon" onClick={() => onRemoveFood(item.id)} className="text-destructive hover:text-destructive/80 h-8 w-8" aria-label={`Remove ${item.name}`}>
-                            <Trash2 className="h-5 w-5" />
+                            <Trash2 className="h-5 w-5" /> {/* Corrected icon for removing individual item */}
                           </Button>
                         </div>
                       </div>
