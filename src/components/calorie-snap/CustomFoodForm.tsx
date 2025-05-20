@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Sparkles, Loader2 } from 'lucide-react'; // Added Sparkles and Loader2
-import { estimateNutritionFromName } from '@/ai/flows/estimate-nutrition-from-name'; // Import the new flow
+import { Sparkles, Loader2 } from 'lucide-react';
+import { estimateNutritionFromName } from '@/ai/flows/estimate-nutrition-from-name';
 import { useToast } from "@/hooks/use-toast";
 
 const foodItemSchema = z.object({
@@ -125,31 +125,30 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
           {[
-            { id: 'name', label: 'Food Name', type: 'text', error: errors.name },
-            { id: 'calories', label: 'Calories (kcal)', type: 'number', error: errors.calories },
-            { id: 'protein', label: 'Protein (g)', type: 'number', error: errors.protein },
-            { id: 'carbs', label: 'Carbohydrates (g)', type: 'number', error: errors.carbs },
-            { id: 'fat', label: 'Fat (g)', type: 'number', error: errors.fat },
+            { id: 'name', label: 'Food Name', type: 'text', error: errors.name, required: true },
+            { id: 'calories', label: 'Calories (kcal)', type: 'number', error: errors.calories, required: false },
+            { id: 'protein', label: 'Protein (g)', type: 'number', error: errors.protein, required: false },
+            { id: 'carbs', label: 'Carbohydrates (g)', type: 'number', error: errors.carbs, required: false },
+            { id: 'fat', label: 'Fat (g)', type: 'number', error: errors.fat, required: false },
           ].map(field => (
-            <div key={field.id} className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor={field.id} className="text-right col-span-1">
+            <div key={field.id} className="grid gap-2">
+              <Label htmlFor={field.id}>
                 {field.label}
+                {field.required && <span className="text-destructive">*</span>}
               </Label>
-              <div className="col-span-3">
-                <Input
-                  id={field.id}
-                  type={field.type}
-                  step={field.type === 'number' ? (field.id === 'calories' ? '1' : '0.1') : undefined}
-                  className="bg-background"
-                  {...register(field.id as keyof FoodFormData, {
-                     valueAsNumber: field.type === 'number'
-                  })}
-                />
-                {field.error && <p className="text-sm text-destructive mt-1">{field.error.message}</p>}
-              </div>
+              <Input
+                id={field.id}
+                type={field.type}
+                step={field.type === 'number' ? (field.id === 'calories' ? '1' : '0.1') : undefined}
+                className="bg-background"
+                {...register(field.id as keyof FoodFormData, {
+                    valueAsNumber: field.type === 'number'
+                })}
+              />
+              {field.error && <p className="text-sm text-destructive mt-1">{field.error.message}</p>}
             </div>
           ))}
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:space-x-0 sm:gap-3 pt-4"> {/* Increased gap */}
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button 
               type="button" 
