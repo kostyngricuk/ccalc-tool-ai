@@ -6,11 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, PlusSquare } from 'lucide-react';
-// Removed: import { Label as BasicLabel } from '@/components/ui/label'; 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField as ShadCNFormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { SearchableSelect, type SearchableSelectItem } from './SearchableSelect';
 
 interface FoodSelectionProps {
@@ -41,8 +40,9 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       const foodToAdd = predefinedFoods.find(f => f.id === selectedFoodId);
       if (foodToAdd) {
         onAddFood(foodToAdd, data.quantity);
-        setSelectedFoodId(undefined);
+        setSelectedFoodId(undefined); // Clear selected food after adding
         quantityForm.reset({ quantity: 1 });
+        setIsSelectOpen(false); // Close the select dropdown
       }
     }
   };
@@ -66,13 +66,18 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       </CardHeader>
       <CardContent className="space-y-6">
         <SearchableSelect
-          id="food-item-searchable-select" // Passed for label association
-          label="Food Item" // Pass label text as prop
+          id="food-item-searchable-select"
+          label="Food Item"
           items={searchableFoodItems}
           value={selectedFoodId}
           onValueChange={(id) => {
             setSelectedFoodId(id);
-            quantityForm.trigger("quantity").catch(() => {});
+            if (id) {
+              quantityForm.trigger("quantity").catch(() => {});
+            } else {
+               // Optionally reset quantity form if selection is cleared
+               quantityForm.reset({ quantity: 1 });
+            }
           }}
           placeholder="Select or search for a food item"
           searchPlaceholder="Search food..."
@@ -83,39 +88,41 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
           onOpenChange={setIsSelectOpen}
         />
 
-        <Form {...quantityForm}>
-          <form onSubmit={quantityForm.handleSubmit(handleAddFoodSubmit)} className="space-y-6">
-            <FormField
-              control={quantityForm.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel htmlFor="quantity-input">Quantity</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="quantity-input"
-                      type="number"
-                      min="0.1"
-                      step="0.1"
-                      {...field}
-                      className="w-full bg-card"
-                      placeholder="e.g., 1 or 0.5"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {selectedFoodId && (
+          <Form {...quantityForm}>
+            <form onSubmit={quantityForm.handleSubmit(handleAddFoodSubmit)} className="space-y-6">
+              <ShadCNFormField
+                control={quantityForm.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel htmlFor="quantity-input">Quantity</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="quantity-input"
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        {...field}
+                        className="w-full bg-card"
+                        placeholder="e.g., 1 or 0.5"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Button
-              type="submit"
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-              disabled={!selectedFoodId || !quantityForm.formState.isValid}
-            >
-              <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
-            </Button>
-          </form>
-        </Form>
+              <Button
+                type="submit"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={!quantityForm.formState.isValid} // selectedFoodId is already checked by the outer condition
+              >
+                <PlusCircle className="mr-2 h-5 w-5" /> Add to Meal
+              </Button>
+            </form>
+          </Form>
+        )}
       </CardContent>
     </Card>
   );
