@@ -74,8 +74,14 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
     } catch (error) {
       console.error("AI Nutrition Estimation error:", error);
       let userErrorMessage = "Could not estimate nutrition. Please try again or enter manually.";
-      if (error instanceof Error && error.message.includes("503")) {
-        userErrorMessage = "The AI service is temporarily overloaded. Please try again in a few moments.";
+      if (error instanceof Error) {
+        if (error.message.includes("503") || error.message.toLowerCase().includes("service unavailable") || error.message.toLowerCase().includes("model is overloaded")) {
+          userErrorMessage = "The AI service is temporarily overloaded. Please try again in a few moments.";
+        } else if (error.message.toLowerCase().includes("deadline exceeded")) {
+            userErrorMessage = "The request to the AI service timed out. Please try again.";
+        } else {
+            userErrorMessage = error.message;
+        }
       }
       toast({ variant: "destructive", title: "AI Error", description: userErrorMessage });
     } finally {
