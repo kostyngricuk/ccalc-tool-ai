@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label'; // Using standard Label
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { UploadCloud, AlertTriangle, Loader2 } from 'lucide-react';
+import { UploadCloud, AlertTriangle, Loader2, Sparkles } from 'lucide-react'; // Added Sparkles
 import { estimateCaloriesFromImage } from '@/ai/flows/estimate-calories-from-image';
 import { useToast } from "@/hooks/use-toast";
 import type { FoodItem } from '@/lib/types';
@@ -162,15 +162,16 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Button
             onClick={handleSubmitImage}
             disabled={isLoading}
-            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 text-lg py-6"
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90" // Removed text-lg and py-6
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Estimating &amp; Adding...
               </>
             ) : (
               <>
+                <Sparkles className="mr-2 h-4 w-4" /> {/* Added Sparkles icon */}
                 Estimate &amp; Add to Meal
               </>
             )}
