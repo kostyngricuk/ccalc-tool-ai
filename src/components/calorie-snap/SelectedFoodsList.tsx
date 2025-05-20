@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'; // Removed TableHead, TableHeader
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NutritionLabel } from './NutritionLabel';
 import { Trash2, PlusCircle, MinusCircle, Info } from 'lucide-react';
@@ -31,6 +31,8 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
   
   const handleInputChange = (id: string, value: string) => {
     if (value === "") {
+      // Allow clearing the input temporarily, handle on blur
+      onUpdateQuantity(id, undefined as any); // Or some placeholder for empty
       return;
     }
 
@@ -42,6 +44,9 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
       } else {
         onUpdateQuantity(id, quantity);
       }
+    } else {
+      // If input is not a number, maybe temporarily set to undefined or keep last valid
+       onUpdateQuantity(id, undefined as any); // Or some placeholder for invalid
     }
   };
 
@@ -51,15 +56,13 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
 
     const currentValue = e.target.value;
     
-    if (currentValue === "") {
+    if (currentValue.trim() === "" || isNaN(parseFloat(currentValue)) || parseFloat(currentValue) <= 0) {
+      // If empty, not a number, or zero/negative, set to 1 (or remove if you prefer)
       onUpdateQuantity(itemId, 1); 
+      // If you prefer to remove on invalid/empty blur, call onRemoveFood(itemId);
       return;
     }
-    
-    const quantity = parseFloat(currentValue);
-    if (isNaN(quantity) || quantity <= 0) {
-      onUpdateQuantity(itemId, 1);
-    }
+    // Value is valid and positive, it's already handled by onChange
   };
 
   return (
@@ -82,26 +85,22 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
         ) : (
           <ScrollArea className="max-h-[calc(100vh-450px)] md:max-h-[400px] pr-1">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="py-3">Item Details</TableHead>
-                </TableRow>
-              </TableHeader>
+              {/* TableHeader removed */}
               <TableBody>
                 {selectedFoods.map((item) => (
                   <TableRow key={item.id} className="hover:bg-secondary/30 transition-colors">
                     <TableCell className="font-medium py-3">
                       <div className="flex flex-col">
                         {/* First line: Name and Info Icon */}
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-semibold text-base mr-2 truncate" title={item.name}>{item.name}</span>
+                        <div className="flex items-center mb-2"> {/* Removed justify-between */}
+                          <span className="font-semibold text-base mr-1 truncate" title={item.name}>{item.name}</span>
                           {item.nutritionLabelDetails && (
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="ml-1.5 p-0 h-5 w-5 inline-flex items-center justify-center text-accent hover:text-accent/80"
+                                  className="p-0 h-5 w-5 inline-flex items-center justify-center text-accent hover:text-accent/80"
                                   aria-label="Show nutrition details"
                                 >
                                   <Info className="h-4 w-4" />
@@ -126,9 +125,9 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
                                 <MinusCircle className="h-5 w-5" />
                               </Button>
                               <Input
-                                type="number"
-                                step="any" 
-                                min="0" 
+                                type="text" // Changed to text to allow empty string temporarily
+                                inputMode="decimal" // Hint for numeric keyboard with decimals
+                                pattern="[0-9]*[.,]?[0-9]*" // Basic pattern for numbers
                                 value={item.quantity === undefined ? '' : String(item.quantity)}
                                 onChange={(e) => handleInputChange(item.id, e.target.value)}
                                 onBlur={(e) => handleInputBlur(e, item.id)}
