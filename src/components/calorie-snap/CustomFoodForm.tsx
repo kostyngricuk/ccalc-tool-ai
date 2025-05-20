@@ -117,12 +117,16 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
     onOpenChange(false);
   };
 
-  const nutrientFields: Array<{id: keyof FoodFormData, label: string, type: string}> = [
+  const allNutrientFieldsData: Array<{id: keyof FoodFormData, label: string, type: string}> = [
     { id: 'calories', label: 'Calories (kcal)', type: 'number' },
     { id: 'protein', label: 'Protein (g)', type: 'number' },
-    { id: 'carbs', label: 'Carbohydrates (g)', type: 'number' },
+    { id: 'carbs', label: 'Carbs (g)', type: 'number' }, // Corrected label
     { id: 'fat', label: 'Fat (g)', type: 'number' },
   ];
+
+  const caloriesFieldData = allNutrientFieldsData.find(f => f.id === 'calories')!;
+  const macroNutrientFieldsData = allNutrientFieldsData.filter(f => f.id === 'protein' || f.id === 'carbs' || f.id === 'fat');
+
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -143,7 +147,7 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Food Name*</FormLabel>
+                  <FormLabel>Food Name<span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Apple" {...field} />
                   </FormControl>
@@ -163,20 +167,19 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
               Use AI to estimate nutrition for "{currentFoodName || 'item'}"
             </Button>
             
-            {nutrientFields.map(nutrient => (
-              <FormField
+            {/* Calories Field */}
+            <FormField
                 control={form.control}
-                name={nutrient.id}
-                key={nutrient.id}
+                name={caloriesFieldData.id}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{nutrient.label}</FormLabel>
+                    <FormLabel>{caloriesFieldData.label}</FormLabel>
                     <FormControl>
                       <Input
-                        type={nutrient.type}
-                        step={nutrient.type === 'number' ? (nutrient.id === 'calories' ? '1' : '0.1') : undefined}
+                        type={caloriesFieldData.type}
+                        step={'1'}
                         {...field}
-                        onChange={(e) => field.onChange(nutrient.type === 'number' ? (e.target.value === '' ? 0 : parseFloat(e.target.value) || 0) : e.target.value)}
+                        onChange={(e) => field.onChange(caloriesFieldData.type === 'number' ? (e.target.value === '' ? 0 : parseFloat(e.target.value) || 0) : e.target.value)}
                         value={field.value === undefined || field.value === null ? '' : String(field.value)}
                       />
                     </FormControl>
@@ -184,7 +187,33 @@ export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }
                   </FormItem>
                 )}
               />
-            ))}
+
+            {/* Protein, Carbs, Fat Fields in a row */}
+            <div className="grid grid-cols-3 gap-4">
+              {macroNutrientFieldsData.map(nutrient => (
+                <FormField
+                  control={form.control}
+                  name={nutrient.id}
+                  key={nutrient.id}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{nutrient.label}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type={nutrient.type}
+                          step={'0.1'}
+                          {...field}
+                          onChange={(e) => field.onChange(nutrient.type === 'number' ? (e.target.value === '' ? 0 : parseFloat(e.target.value) || 0) : e.target.value)}
+                          value={field.value === undefined || field.value === null ? '' : String(field.value)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
+
             <div className="flex justify-end space-x-3 pt-2">
               <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
