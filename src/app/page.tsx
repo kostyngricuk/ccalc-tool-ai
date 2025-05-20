@@ -48,8 +48,6 @@ export default function CalorieSnapPage() {
   const handleAddFoodToSelection = (food: FoodItem, quantity: number) => {
     let foodToProcess = { ...food };
 
-    // Ensure nutritionLabelDetails is populated for predefined or custom foods if not already present
-    // AI-estimated foods will have this populated by ImageUpload. Custom foods get it from CustomFoodForm.
     if (!foodToProcess.nutritionLabelDetails && 
         (foodToProcess.calories > 0 || foodToProcess.protein > 0 || foodToProcess.carbs > 0 || foodToProcess.fat > 0)) {
       foodToProcess.nutritionLabelDetails = [
@@ -67,7 +65,7 @@ export default function CalorieSnapPage() {
           f.id === foodToProcess.id ? { 
             ...f, 
             quantity: (f.quantity || 0) + quantity,
-            nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails // Ensure it's preserved/updated
+            nutritionLabelDetails: f.nutritionLabelDetails || foodToProcess.nutritionLabelDetails
           } : f
         );
       }
@@ -88,7 +86,6 @@ export default function CalorieSnapPage() {
   };
 
   const handleSaveCustomFood = (food: FoodItem) => {
-    // CustomFoodForm now generates nutritionLabelDetails, so food object is complete
     setCustomFoods((prevFoods) => [...prevFoods, food]);
     handleAddFoodToSelection(food, 1); 
     toast({
@@ -106,7 +103,6 @@ export default function CalorieSnapPage() {
   };
 
   const handleFoodEstimatedFromImage = (foodItem: FoodItem) => {
-    // ImageUpload component passes a complete FoodItem with nutritionLabelDetails
     handleAddFoodToSelection(foodItem, 1); 
   };
 
@@ -121,8 +117,9 @@ export default function CalorieSnapPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
+        <div className="flex flex-col space-y-8"> {/* Changed from grid to flex-col */}
+          {/* Item Input Section */}
+          <div className="w-full">
             <Tabs defaultValue="manual" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="manual">Manual Entry</TabsTrigger>
@@ -141,15 +138,18 @@ export default function CalorieSnapPage() {
             </Tabs>
           </div>
 
-          <div className="md:col-span-1 space-y-8">
-            <NutritionalSummary totals={totalNutrients} />
-            <SelectedFoodsList
-              selectedFoods={selectedFoods}
-              onRemoveFood={handleRemoveFoodFromSelection}
-              onUpdateQuantity={handleUpdateFoodQuantity}
-              onClearAll={handleClearAllSelectedFoods}
-            />
-          </div>
+          {/* Current Meal Section - Conditional Rendering */}
+          {selectedFoods.length > 0 && (
+            <div className="w-full space-y-8">
+              <NutritionalSummary totals={totalNutrients} />
+              <SelectedFoodsList
+                selectedFoods={selectedFoods}
+                onRemoveFood={handleRemoveFoodFromSelection}
+                onUpdateQuantity={handleUpdateFoodQuantity}
+                onClearAll={handleClearAllSelectedFoods}
+              />
+            </div>
+          )}
         </div>
       </main>
       <Toaster />
