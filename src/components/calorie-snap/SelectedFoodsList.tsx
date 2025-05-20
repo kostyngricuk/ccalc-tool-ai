@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NutritionLabel } from './NutritionLabel';
-import { PlusCircle, MinusCircle, Info, Trash2 } from 'lucide-react'; // Ensured Trash2 is imported, Recycle removed if not used elsewhere
+import { PlusCircle, MinusCircle, Info, Trash2, RefreshCcw } from 'lucide-react'; 
 import React from 'react';
 
 interface SelectedFoodsListProps {
@@ -75,7 +75,7 @@ export function SelectedFoodsList({ selectedFoods, onRemoveFood, onUpdateQuantit
               className="text-destructive hover:text-destructive/80"
               aria-label="Clear Meal" 
             >
-              <Trash2 className="h-5 w-5" /> {/* Changed icon to Trash2 */}
+              <RefreshCcw className="h-5 w-5" />
             </Button>
           )}
         </div>
