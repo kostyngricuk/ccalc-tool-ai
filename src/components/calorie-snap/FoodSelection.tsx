@@ -7,28 +7,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, PlusSquare } from 'lucide-react'; // Added PlusSquare
+import { PlusCircle, PlusSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface FoodSelectionProps {
   predefinedFoods: FoodItem[];
   onAddFood: (food: FoodItem, quantity: number) => void;
-  onTriggerCustomFoodDialog: (searchTerm: string) => void; // New prop
+  onTriggerCustomFoodDialog: (searchTerm: string) => void;
 }
 
 export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodDialog }: FoodSelectionProps) {
   const [selectedFoodId, setSelectedFoodId] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isSelectOpen, setIsSelectOpen] = useState(false); // Control Select open state
 
   const handleAddFood = () => {
     if (selectedFoodId) {
       const foodToAdd = predefinedFoods.find(f => f.id === selectedFoodId);
       if (foodToAdd && quantity > 0) {
         onAddFood(foodToAdd, quantity);
-        setSelectedFoodId(undefined); 
-        setSearchTerm(''); 
-        setQuantity(1); 
+        setSelectedFoodId(undefined);
+        setSearchTerm('');
+        setQuantity(1);
+        // Note: Select dropdown would have already closed upon item selection.
       }
     }
   };
@@ -37,14 +39,15 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
     food.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handler for when an actual food item is selected from the dropdown
   const handleFoodSelected = (foodId: string) => {
     setSelectedFoodId(foodId);
-    // Optional: Clear search term after selection if desired, or Select may handle it
-    // const selectedFoodName = predefinedFoods.find(f => f.id === foodId)?.name;
-    // if (selectedFoodName) setSearchTerm(selectedFoodName); 
+    // setIsSelectOpen(false); // Select component handles this via onOpenChange
   };
 
+  const handleCustomFoodTrigger = () => {
+    onTriggerCustomFoodDialog(searchTerm);
+    setIsSelectOpen(false); // Close the dropdown
+  };
 
   return (
     <Card className="shadow-lg">
@@ -55,7 +58,12 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="food-select">Food Item</Label>
-          <Select value={selectedFoodId} onValueChange={handleFoodSelected}>
+          <Select
+            open={isSelectOpen}
+            onOpenChange={setIsSelectOpen}
+            value={selectedFoodId}
+            onValueChange={handleFoodSelected}
+          >
             <SelectTrigger id="food-select" className="w-full bg-card">
               <SelectValue placeholder="Select or search for a food item" />
             </SelectTrigger>
@@ -66,13 +74,13 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setSelectedFoodId(undefined); // Clear selection when search term changes
+                    setSelectedFoodId(undefined); 
                   }}
                   className="bg-background border-input mb-2"
                   aria-label="Search food items"
                 />
               </div>
-              <ScrollArea className="max-h-[250px]"> {/* Dynamic height, max-h for usability */}
+              <ScrollArea className="max-h-[250px]">
                 {filteredFoods.length > 0 ? (
                   filteredFoods.map((food) => (
                     <SelectItem key={food.id} value={food.id}>
@@ -82,16 +90,13 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
                 ) : searchTerm.trim() !== '' ? (
                   <div
                     className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => {
-                      onTriggerCustomFoodDialog(searchTerm);
-                      // Closing the Select dropdown will be handled by its own mechanics or by page.tsx state change
-                    }}
+                    onClick={handleCustomFoodTrigger}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => { 
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        onTriggerCustomFoodDialog(searchTerm);
+                        handleCustomFoodTrigger();
                       }
                     }}
                   >
