@@ -1,15 +1,15 @@
 
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react'; // Added useEffect
 import type { FoodItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // Removed DialogTrigger, DialogClose
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { PlusSquare } from 'lucide-react';
+// Removed PlusSquare as trigger is gone
 
 const foodItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -23,13 +23,15 @@ type FoodFormData = z.infer<typeof foodItemSchema>;
 
 interface CustomFoodFormProps {
   onSave: (food: FoodItem) => void;
+  isOpen: boolean; // New prop
+  onOpenChange: (open: boolean) => void; // New prop
+  initialFoodName?: string; // New prop
 }
 
-export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+export function CustomFoodForm({ onSave, isOpen, onOpenChange, initialFoodName }: CustomFoodFormProps) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FoodFormData>({
     resolver: zodResolver(foodItemSchema),
-    defaultValues: {
+    defaultValues: { // Default values will be overridden by reset in useEffect
       name: '',
       calories: 0,
       protein: 0,
@@ -37,6 +39,18 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
       fat: 0,
     }
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        name: initialFoodName || '',
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+      });
+    }
+  }, [isOpen, initialFoodName, reset]);
 
   const onSubmit: SubmitHandler<FoodFormData> = (data) => {
     let calculatedCalories = data.calories;
@@ -63,27 +77,22 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
       nutritionLabelDetails: nutritionDetails,
     };
     onSave(newFood);
-    reset(); 
-    setIsOpen(false);
+    onOpenChange(false); // Close dialog using prop
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
+      onOpenChange(open); // Control via prop
       if (!open) {
-        reset(); 
+        // reset(); // Reset is handled by useEffect on open
       }
     }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10 hover:text-primary">
-          <PlusSquare className="mr-2 h-5 w-5" /> Add Custom Food
-        </Button>
-      </DialogTrigger>
+      {/* DialogTrigger is removed */}
       <DialogContent className="sm:max-w-[480px] bg-card">
         <DialogHeader>
           <DialogTitle className="text-2xl text-primary">Add Custom Food Item</DialogTitle>
           <DialogDescription>
-            Enter the nutritional information. Calories will be auto-calculated if left at 0 and macros are provided.
+            Enter the nutritional information for "{initialFoodName || 'your new item'}". Calories will be auto-calculated if left at 0 and macros are provided.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
@@ -113,9 +122,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
             </div>
           ))}
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">Cancel</Button>
-            </DialogClose>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button> {/* Use onOpenChange */}
             <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">Save Food Item</Button>
           </DialogFooter>
         </form>

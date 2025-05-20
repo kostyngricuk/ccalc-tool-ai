@@ -26,10 +26,14 @@ export default function CalorieSnapPage() {
   });
   const { toast } = useToast();
 
+  // State for CustomFoodForm dialog
+  const [isCustomFoodDialogOpen, setIsCustomFoodDialogOpen] = useState(false);
+  const [customFoodInitialName, setCustomFoodInitialName] = useState<string | undefined>(undefined);
+
   const calculateTotals = useCallback(() => {
     const totals = selectedFoods.reduce(
       (acc, item) => {
-        const quantity = Number(item.quantity) || 0; // Treat undefined or NaN quantity as 0 for totals
+        const quantity = Number(item.quantity) || 0; 
         acc.calories += item.calories * quantity;
         acc.protein += item.protein * quantity;
         acc.carbs += item.carbs * quantity;
@@ -76,7 +80,7 @@ export default function CalorieSnapPage() {
     setSelectedFoods((prevFoods) => prevFoods.filter((food) => food.id !== id));
   };
 
-  const handleUpdateFoodQuantity = (id: string, newQuantity?: number) => { // Allow newQuantity to be undefined
+  const handleUpdateFoodQuantity = (id: string, newQuantity?: number) => { 
     setSelectedFoods((prevFoods) =>
       prevFoods.map((food) =>
         food.id === id ? { ...food, quantity: newQuantity } : food
@@ -91,6 +95,7 @@ export default function CalorieSnapPage() {
         title: "Custom Food Added",
         description: `${food.name} has been added to your meal.`,
     });
+    setIsCustomFoodDialogOpen(false); // Close dialog after saving
   };
   
   const handleClearAllSelectedFoods = () => {
@@ -115,6 +120,10 @@ export default function CalorieSnapPage() {
     return [...uniquePredefined, ...customFoods];
   }, [predefinedFoods, customFoods]);
 
+  const handleTriggerCustomFoodDialog = (searchTerm: string) => {
+    setCustomFoodInitialName(searchTerm);
+    setIsCustomFoodDialogOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -132,8 +141,15 @@ export default function CalorieSnapPage() {
                 <FoodSelection
                   predefinedFoods={allAvailableFoods}
                   onAddFood={handleAddFoodToSelection}
+                  onTriggerCustomFoodDialog={handleTriggerCustomFoodDialog} // Pass handler
                 />
-                <CustomFoodForm onSave={handleSaveCustomFood} />
+                {/* CustomFoodForm is now controlled and doesn't render its own trigger */}
+                <CustomFoodForm
+                  isOpen={isCustomFoodDialogOpen}
+                  onOpenChange={setIsCustomFoodDialogOpen}
+                  initialFoodName={customFoodInitialName}
+                  onSave={handleSaveCustomFood}
+                />
               </TabsContent>
               <TabsContent value="image">
                 <ImageUpload onFoodEstimated={handleFoodEstimatedFromImage} />
