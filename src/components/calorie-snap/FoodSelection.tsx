@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, PlusSquare } from 'lucide-react';
-import { Label as BasicLabel } from '@/components/ui/label';
+import { Label as BasicLabel } from '@/components/ui/label'; // Renamed import
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ReusableSearchableSelect, type SearchableSelectItem } from './ReusableSearchableSelect';
+import { SearchableSelect, type SearchableSelectItem } from './SearchableSelect'; // Updated import
 
 interface FoodSelectionProps {
   predefinedFoods: FoodItem[];
@@ -26,6 +26,7 @@ type QuantityFormData = z.infer<typeof quantityFormSchema>;
 
 export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodDialog }: FoodSelectionProps) {
   const [selectedFoodId, setSelectedFoodId] = useState<string | undefined>(undefined);
+  const [isSelectOpen, setIsSelectOpen] = useState(false); // State to control popover
 
   const quantityForm = useForm<QuantityFormData>({
     resolver: zodResolver(quantityFormSchema),
@@ -54,6 +55,7 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
 
   const handleCustomFoodTriggerWithSearchTerm = (searchTerm: string) => {
     onTriggerCustomFoodDialog(searchTerm);
+    setIsSelectOpen(false); // Close the select popover
   };
 
   return (
@@ -65,13 +67,12 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <BasicLabel htmlFor="food-item-searchable-select">Food Item</BasicLabel>
-          <ReusableSearchableSelect
+          <SearchableSelect // Updated component name
             id="food-item-searchable-select"
             items={searchableFoodItems}
             value={selectedFoodId}
             onValueChange={(id) => {
               setSelectedFoodId(id);
-              // Trigger validation for quantity when food item changes to update button state
               quantityForm.trigger("quantity").catch(() => {});
             }}
             placeholder="Select or search for a food item"
@@ -79,6 +80,8 @@ export function FoodSelection({ predefinedFoods, onAddFood, onTriggerCustomFoodD
             notFoundText={(searchTerm) => `Add "${searchTerm}" as custom food`}
             onNotFoundClick={handleCustomFoodTriggerWithSearchTerm}
             notFoundIcon={PlusSquare}
+            isOpen={isSelectOpen} // Control open state
+            onOpenChange={setIsSelectOpen} // Control open state
           />
         </div>
 
