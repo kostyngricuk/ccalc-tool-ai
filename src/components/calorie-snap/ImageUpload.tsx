@@ -127,7 +127,7 @@ export function ImageUpload({ onFoodEstimated }: ImageUploadProps) {
           <Button 
             onClick={() => fileInputRef.current?.click()} 
             variant="outline" 
-            className="w-full border-dashed border-2 border-input hover:border-accent text-muted-foreground hover:text-accent py-8 mt-2" // Added mt-2 for spacing from label
+            className="w-full border-dashed border-2 border-input text-muted-foreground hover:border-accent py-8 mt-2" // Removed hover:text-accent to allow variant's hover:text-accent-foreground to apply
             aria-label="Upload food image"
           >
             <div className="flex flex-col items-center space-y-2">
