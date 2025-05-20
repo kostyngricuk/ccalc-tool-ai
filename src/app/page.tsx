@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { FoodItem, NutritionalInfo } from '@/lib/types';
 import { predefinedFoods as initialPredefinedFoods } from '@/lib/mockData';
-import { Header } from '@/components/ccalc/Header';
-import { FoodSelection } from '@/components/ccalc/FoodSelection';
-import { CustomFoodForm } from '@/components/ccalc/CustomFoodForm';
-import { ImageUpload } from '@/components/ccalc/ImageUpload';
-import { SelectedFoodsList } from '@/components/ccalc/SelectedFoodsList';
-import { NutritionalSummary } from '@/components/ccalc/NutritionalSummary';
+import { Header } from '@/components/calorie-snap/Header';
+import { FoodSelection } from '@/components/calorie-snap/FoodSelection';
+import { CustomFoodForm } from '@/components/calorie-snap/CustomFoodForm';
+import { ImageUpload } from '@/components/calorie-snap/ImageUpload';
+import { SelectedFoodsList } from '@/components/calorie-snap/SelectedFoodsList';
+import { NutritionalSummary } from '@/components/calorie-snap/NutritionalSummary';
 import { Toaster } from "@/components/ui/toaster";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
