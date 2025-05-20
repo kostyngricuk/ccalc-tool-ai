@@ -29,6 +29,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FoodFormData>({
     resolver: zodResolver(foodItemSchema),
     defaultValues: {
+      name: '', // Ensure name is also reset
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -37,18 +38,37 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
   });
 
   const onSubmit: SubmitHandler<FoodFormData> = (data) => {
+    let calculatedCalories = data.calories;
+
+    // If calories field is 0 (either default or user explicitly entered 0)
+    // AND there are macronutrients provided, then calculate calories.
+    if (data.calories === 0 && (data.protein > 0 || data.carbs > 0 || data.fat > 0)) {
+      calculatedCalories = Math.round((data.protein * 4) + (data.carbs * 4) + (data.fat * 9));
+    }
+    // If user entered a specific non-zero value for calories, it's used.
+    // If calories is 0 and all macros are 0, calories remains 0.
+
     const newFood: FoodItem = {
       id: `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      ...data,
+      name: data.name,
+      calories: calculatedCalories, // Use the potentially recalculated value
+      protein: data.protein,
+      carbs: data.carbs,
+      fat: data.fat,
       custom: true,
     };
     onSave(newFood);
-    reset();
+    reset(); // Resets form to defaultValues
     setIsOpen(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        reset(); // Reset form when dialog is closed externally too
+      }
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10 hover:text-primary">
           <PlusSquare className="mr-2 h-5 w-5" /> Add Custom Food
@@ -58,7 +78,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl text-primary">Add Custom Food Item</DialogTitle>
           <DialogDescription>
-            Enter the nutritional information for your custom food item.
+            Enter the nutritional information. Calories will be auto-calculated if left at 0 and macros are provided.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 py-4">
@@ -77,7 +97,7 @@ export function CustomFoodForm({ onSave }: CustomFoodFormProps) {
                 <Input
                   id={field.id}
                   type={field.type}
-                  step={field.type === 'number' ? '0.1' : undefined}
+                  step={field.type === 'number' ? (field.id === 'calories' ? '1' : '0.1') : undefined}
                   className="bg-background"
                   {...register(field.id as keyof FoodFormData, {
                      valueAsNumber: field.type === 'number'
